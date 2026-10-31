@@ -1,0 +1,37 @@
+{
+  "name": "@voicebridge/worker-livekit-example",
+  "version": "0.0.0",
+  "description": "Example runnable VoiceBridge LiveKit worker for the help-desk backend (backend-controlled mode, no LLM). Demo only.",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "@voicebridge/source": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/worker.ts dev --log-level warn",
+    "start": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/worker.ts start --log-level warn",
+    "diagnose": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/diagnose.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --run",
+    "e2e": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local e2e/live-e2e.ts"
+  },
+  "dependencies": {
+    "@voicebridge/core": "workspace:*",
+    "@voicebridge/runtime-livekit": "workspace:*",
+    "@livekit/agents": "1.9.5",
+    "@livekit/rtc-node": "0.13.35"
+  },
+  "devDependencies": {
+    "@voicebridge/livekit-tokens": "workspace:*",
+    "@types/node": "^24.13.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

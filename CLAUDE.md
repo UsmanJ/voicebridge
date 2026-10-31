@@ -81,7 +81,8 @@ TypeScript (strict), Node.js 24 LTS, pnpm workspaces, `@livekit/agents`, Zod, Vi
   `docs/ARCHITECTURE.md` §13.
 - Public APIs need TSDoc and Vitest tests. Bug fixes start with a failing test.
 - Before calling a change done: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`.
-- Agent behaviour changes (instructions, tool descriptions) also need a scenario in `scenarios.yaml`
-  (see AGENTS.md).
+- When agent-controlled mode lands, agent behaviour changes (instructions, tool descriptions) also
+  need a LiveKit simulation scenario (see AGENTS.md). The starter's `scenarios.yaml` was removed in
+  M4 along with the starter agent.
 - Document trade-offs and limitations honestly. Never claim production readiness without evidence.
 - Keep `docs/ARCHITECTURE.md` current when a decision changes or a spike resolves.

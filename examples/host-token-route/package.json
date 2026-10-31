@@ -1,0 +1,32 @@
+{
+  "name": "@voicebridge/host-token-route-example",
+  "version": "0.0.0",
+  "description": "Example host application route that authenticates a caller and issues VoiceBridge LiveKit credentials. Demo only.",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "@voicebridge/source": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/server.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@voicebridge/core": "workspace:*",
+    "@voicebridge/livekit-tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "@voicebridge/backend-help-desk-example": "workspace:*",
+    "@types/node": "^24.13.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

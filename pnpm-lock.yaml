@@ -7,22 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@livekit/agents':
-        specifier: ^1.9.3
-        version: 1.9.5(@livekit/rtc-node@0.13.35)(@types/node@24.19.2)(typescript@5.9.3)(zod@4.6.7)
-      '@livekit/plugins-ai-coustics':
-        specifier: ^0.3.2
-        version: 0.3.5(@livekit/agents@1.9.5(@livekit/rtc-node@0.13.35)(@types/node@24.19.2)(typescript@5.9.3)(zod@4.6.7))(@livekit/rtc-node@0.13.35)
-      '@livekit/rtc-node':
-        specifier: ^0.13.35
-        version: 0.13.35
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
-      zod:
-        specifier: ^4.6.5
-        version: 4.6.7
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.5
@@ -48,6 +32,72 @@ importers:
       typescript-eslint:
         specifier: ^8.70.0
         version: 8.72.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2)(jiti@2.7.0))
+
+  examples/backend-help-desk:
+    dependencies:
+      '@voicebridge/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.13.5
+        version: 24.19.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2)(jiti@2.7.0))
+
+  examples/host-token-route:
+    dependencies:
+      '@voicebridge/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@voicebridge/livekit-tokens':
+        specifier: workspace:*
+        version: link:../../packages/livekit-tokens
+    devDependencies:
+      '@types/node':
+        specifier: ^24.13.5
+        version: 24.19.2
+      '@voicebridge/backend-help-desk-example':
+        specifier: workspace:*
+        version: link:../backend-help-desk
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2)(jiti@2.7.0))
+
+  examples/worker-livekit:
+    dependencies:
+      '@livekit/agents':
+        specifier: 1.9.5
+        version: 1.9.5(@livekit/rtc-node@0.13.35)(@types/node@24.19.2)(typescript@5.9.3)(zod@4.6.7)
+      '@livekit/rtc-node':
+        specifier: 0.13.35
+        version: 0.13.35
+      '@voicebridge/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@voicebridge/runtime-livekit':
+        specifier: workspace:*
+        version: link:../../packages/runtime-livekit
+    devDependencies:
+      '@types/node':
+        specifier: ^24.13.5
+        version: 24.19.2
+      '@voicebridge/livekit-tokens':
+        specifier: workspace:*
+        version: link:../../packages/livekit-tokens
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^4.1.11
         version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2)(jiti@2.7.0))
@@ -491,38 +541,6 @@ packages:
   '@livekit/mutex@1.1.1':
     resolution: {integrity: sha512-EsshAucklmpuUAfkABPxJNhzj9v2sG7JuzFDL4ML1oJQSV14sqrpTYnsaOudMAw9yOaW53NU3QQTlUQoRs4czw==}
 
-  '@livekit/plugins-ai-coustics-aarch64-apple-darwin@0.3.5':
-    resolution: {integrity: sha512-PAJvUSMfy0s2EM9xzoGw07tG/DuM1NWs5lu7OMtetkaZOg6ilEYr0ZeaWWqDkj8oVTDSW1e833dTZatAGDT89A==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@livekit/plugins-ai-coustics-aarch64-unknown-linux-gnu@0.3.5':
-    resolution: {integrity: sha512-eutbmi6SZriZIL9Gf7kQpfUFvrP6ExvP9it+o36TsIqQIcsuQKNCPrYVp+4K+9llNSZ3kB+XMoRkNmBEQmCrYA==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@livekit/plugins-ai-coustics-x86_64-apple-darwin@0.3.5':
-    resolution: {integrity: sha512-e4AF0GACNRNabczHfPAasoocXgRVnwPo4lNGMuPhNCx8L5HOCFJ7NlwHqqVRmOAwfGmup9W659B9AlxPIZkMvA==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@livekit/plugins-ai-coustics-x86_64-pc-windows-msvc@0.3.5':
-    resolution: {integrity: sha512-EORnwHEzhNvMCs4AzEv3r8fZoCI2iUtyK77RazovHczfJDcbq/i1POwiAwTuO8PfNlIb4mku6jZSKStrWOT5Ew==}
-    cpu: [x64]
-    os: [win32]
-
-  '@livekit/plugins-ai-coustics-x86_64-unknown-linux-gnu@0.3.5':
-    resolution: {integrity: sha512-1XH0Q/QAfYFS4Kwq5Dqbu1TX+H6DCl4uU4iSI6dyhUmhK3WfFaqfEbd1ZnzesGc8aRisDD2X7cAIKZzmjskzig==}
-    cpu: [x64]
-    os: [linux]
-
-  '@livekit/plugins-ai-coustics@0.3.5':
-    resolution: {integrity: sha512-SEkH0pDhAQnZL8lC3JSJu+uJ6vpuY2W88D0BTHAoQSRcHB2MqEvdNDX5dWIpfCFpVrsCwe7UBXE/fK0iW2oA+g==}
-    engines: {node: '>= 18'}
-    peerDependencies:
-      '@livekit/agents': ^1.0.43
-      '@livekit/rtc-node': ^1.1.0
-
   '@livekit/protocol@1.51.0':
     resolution: {integrity: sha512-kEDEDaFvIcp5VlYBromdSKMJMEJKfPvXPfEaJPdEz1Qgo84gZAoLF2g58CcMlVYGsjrwE5XYgQxRS5B7KuEj3w==}
 
@@ -905,52 +923,6 @@ packages:
     resolution: {integrity: sha512-SB8xqipSzZHUePCCLNeYxqnxq83X61/qzNhjQGbTfjxGZIeOEP7tBgWYX05Tcd6CgE02WdTJnh5b8kMZJ/+bnQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ubjs/core@0.31.0-5':
-    resolution: {integrity: sha512-oRBRtyYOhaodiOY3rLMZFgAHGFMmD44XefMpsAx4Ja0/rO+45kVdQB1VZsblQMLYxP965i3IHm56eymgo3I5eQ==}
-
-  '@ubjs/node-darwin-arm64@0.31.0-5':
-    resolution: {integrity: sha512-ZefUcOgW0UkPZe9aav021m1hBfBzzhj75gOS/gc85g2PkmWDctz+D+tKQYs/gwM44vu1We2WTGcitf8yrZJGyA==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@ubjs/node-darwin-x64@0.31.0-5':
-    resolution: {integrity: sha512-K4A5k8hsLeOtgG4tT73u/XKfxUUOjWxwjRf3e4v3sggG6b7q3yoSFUwPjf12la6VSgD/E9sRjrTAT7MNdENaww==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@ubjs/node-linux-arm64-gnu@0.31.0-5':
-    resolution: {integrity: sha512-m4S96owMdh53G6w6hALi7nfsUhB+Y6bAcjVJnRdzVe5WJ+o2dMTbj9u/IxtcJaENtLLEMDPHhLAZmxQS9Licew==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@ubjs/node-linux-arm64-musl@0.31.0-5':
-    resolution: {integrity: sha512-VVkXe8We9ka8FZqJfsbl4DEkbn4nt4htSCd2Vr39L9kOrBtNZ8SR0s+BiMQ8xBQnP6u+O95TrhOviROCDj2VSw==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@ubjs/node-linux-x64-gnu@0.31.0-5':
-    resolution: {integrity: sha512-xFvl3iGWBVqghmz9lC4qij+ezLHV5V11O/6G+0rM7a/nAQdweCSCeZ65QsiVoqC/bYJ7fKIyKCXFMy5ldhSQvw==}
-    cpu: [x64]
-    os: [linux]
-
-  '@ubjs/node-linux-x64-musl@0.31.0-5':
-    resolution: {integrity: sha512-R3HzFVI+v9G5CVOFOSxhF9SYX1o/6llA9mQbaANYMANuybE6LNJ8fgj51CTRrhobjWmgA24swq24DqbVsqypZg==}
-    cpu: [x64]
-    os: [linux]
-
-  '@ubjs/node-win32-arm64-msvc@0.31.0-5':
-    resolution: {integrity: sha512-A7Z6lYqY0QQF4j3ce/3k1iIjgJIMWje3wTU9RfOTDSl0hcKKHDezvwvLiLBbVjagwJQOKWO5zwWLBAw6KTUDHQ==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@ubjs/node-win32-x64-msvc@0.31.0-5':
-    resolution: {integrity: sha512-rqaH2YZBjUphSV8nFseeTG5vJMToDt8QhoY4wKULGZr2OF/HM52Ggt/9yb+gsuJ1l4ekz2biJrlN/HlhyV3CZw==}
-    cpu: [x64]
-    os: [win32]
-
-  '@ubjs/node@0.31.0-5':
-    resolution: {integrity: sha512-w1gyA/1H7TiJIQfHD6Zjr673IDfG+1a4hpM0f0krxJr9jlTkrwouFCoNTwpLmSxSWJXtUxkB19Bk0ekxAepOHQ==}
-
   '@vitest/expect@4.1.12':
     resolution: {integrity: sha512-vFlTt+YEu9WBpNjdGayNmlMVzrWPi1+sv853/7t2FU7hpO5gAFBKHzQmkCq5Xjpr+evegF2994LQT3hF3mRlqQ==}
 
@@ -1110,10 +1082,6 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
-
-  dotenv@17.4.2:
-    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
-    engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -1648,10 +1616,6 @@ packages:
     resolution: {integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==}
     hasBin: true
 
-  pino@9.13.1:
-    resolution: {integrity: sha512-Szuj+ViDTjKPQYiKumGmEn3frdl+ZPSdosHyt9SnUevFosOkMY2b7ipxlEctNKPmMD/VibeBI+ZcZCJK+4DPuw==}
-    hasBin: true
-
   pino@9.14.0:
     resolution: {integrity: sha512-8OEwKp5juEvb/MjpIc4hjqfgCNysrS94RIOMXYvpYCdm/jglrKEiAYmiumbmGhCvs+IcInsphYDFwqrjr7398w==}
     hasBin: true
@@ -1747,9 +1711,6 @@ packages:
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
-
-  slow-redact@0.3.2:
-    resolution: {integrity: sha512-MseHyi2+E/hBRqdOi5COy6wZ7j7DxXRz9NkseavNYSvvWC06D8a5cidVZX3tcG5eCW3NIyVU4zT63hw0Q486jw==}
 
   sonic-boom@3.8.1:
     resolution: {integrity: sha512-y4Z8LCDBuum+PBP3lSV7RHrXscqksve/bi0as7mhwVnBW+/wUqKT/2Kb7um8yqcFy0duYbbPxzt89Zy2nOCaxg==}
@@ -2348,36 +2309,6 @@ snapshots:
 
   '@livekit/mutex@1.1.1': {}
 
-  '@livekit/plugins-ai-coustics-aarch64-apple-darwin@0.3.5':
-    optional: true
-
-  '@livekit/plugins-ai-coustics-aarch64-unknown-linux-gnu@0.3.5':
-    optional: true
-
-  '@livekit/plugins-ai-coustics-x86_64-apple-darwin@0.3.5':
-    optional: true
-
-  '@livekit/plugins-ai-coustics-x86_64-pc-windows-msvc@0.3.5':
-    optional: true
-
-  '@livekit/plugins-ai-coustics-x86_64-unknown-linux-gnu@0.3.5':
-    optional: true
-
-  '@livekit/plugins-ai-coustics@0.3.5(@livekit/agents@1.9.5(@livekit/rtc-node@0.13.35)(@types/node@24.19.2)(typescript@5.9.3)(zod@4.6.7))(@livekit/rtc-node@0.13.35)':
-    dependencies:
-      '@livekit/agents': 1.9.5(@livekit/rtc-node@0.13.35)(@types/node@24.19.2)(typescript@5.9.3)(zod@4.6.7)
-      '@livekit/rtc-node': 0.13.35
-      '@ubjs/core': 0.31.0-5
-      '@ubjs/node': 0.31.0-5
-      pino: 9.13.1
-      pino-pretty: 13.2.0
-    optionalDependencies:
-      '@livekit/plugins-ai-coustics-aarch64-apple-darwin': 0.3.5
-      '@livekit/plugins-ai-coustics-aarch64-unknown-linux-gnu': 0.3.5
-      '@livekit/plugins-ai-coustics-x86_64-apple-darwin': 0.3.5
-      '@livekit/plugins-ai-coustics-x86_64-pc-windows-msvc': 0.3.5
-      '@livekit/plugins-ai-coustics-x86_64-unknown-linux-gnu': 0.3.5
-
   '@livekit/protocol@1.51.0':
     dependencies:
       '@bufbuild/protobuf': 1.10.1
@@ -2753,43 +2684,6 @@ snapshots:
       '@typescript-eslint/types': 8.72.1
       eslint-visitor-keys: 5.0.1
 
-  '@ubjs/core@0.31.0-5': {}
-
-  '@ubjs/node-darwin-arm64@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-darwin-x64@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-linux-arm64-gnu@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-linux-arm64-musl@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-linux-x64-gnu@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-linux-x64-musl@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-win32-arm64-msvc@0.31.0-5':
-    optional: true
-
-  '@ubjs/node-win32-x64-msvc@0.31.0-5':
-    optional: true
-
-  '@ubjs/node@0.31.0-5':
-    optionalDependencies:
-      '@ubjs/node-darwin-arm64': 0.31.0-5
-      '@ubjs/node-darwin-x64': 0.31.0-5
-      '@ubjs/node-linux-arm64-gnu': 0.31.0-5
-      '@ubjs/node-linux-arm64-musl': 0.31.0-5
-      '@ubjs/node-linux-x64-gnu': 0.31.0-5
-      '@ubjs/node-linux-x64-musl': 0.31.0-5
-      '@ubjs/node-win32-arm64-msvc': 0.31.0-5
-      '@ubjs/node-win32-x64-msvc': 0.31.0-5
-
   '@vitest/expect@4.1.12':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -2935,8 +2829,6 @@ snapshots:
   destr@2.0.5: {}
 
   detect-libc@2.1.2: {}
-
-  dotenv@17.4.2: {}
 
   dunder-proto@1.0.1:
     dependencies:
@@ -3435,20 +3327,6 @@ snapshots:
       sonic-boom: 3.8.1
       thread-stream: 2.7.0
 
-  pino@9.13.1:
-    dependencies:
-      atomic-sleep: 1.0.0
-      on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 2.0.0
-      pino-std-serializers: 7.1.0
-      process-warning: 5.1.1
-      quick-format-unescaped: 4.0.4
-      real-require: 0.2.0
-      safe-stable-stringify: 2.5.0
-      slow-redact: 0.3.2
-      sonic-boom: 4.2.1
-      thread-stream: 3.2.0
-
   pino@9.14.0:
     dependencies:
       '@pinojs/redact': 0.4.0
@@ -3578,8 +3456,6 @@ snapshots:
   shebang-regex@3.0.0: {}
 
   siginfo@2.0.0: {}
-
-  slow-redact@0.3.2: {}
 
   sonic-boom@3.8.1:
     dependencies:

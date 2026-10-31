@@ -1,22 +1,20 @@
 {
   "name": "voicebridge",
   "version": "0.0.0",
-  "description": "Application-agnostic voice AI integration gateway built on LiveKit Agents (pre-alpha).",
+  "description": "Provider-neutral voice AI integration middleware. LiveKit Agents is the first runtime (pre-alpha).",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
     "build": "pnpm -r --if-present run build",
-    "typecheck": "tsc --noEmit && pnpm -r --if-present run typecheck",
+    "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint \"**/*.{ts,js}\"",
     "lint:fix": "eslint --fix \"**/*.{ts,js}\"",
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
     "test": "pnpm -r --if-present run test",
-    "verify:core-isolation": "node scripts/verify-core-isolation.mjs",
-    "dev": "lk agent dev",
-    "start": "node src/main.ts start"
+    "verify:core-isolation": "node scripts/verify-core-isolation.mjs"
   },
   "engines": {
     "node": ">=24.0.0",
@@ -32,12 +30,5 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.70.0",
     "vitest": "^4.1.11"
-  },
-  "dependencies": {
-    "@livekit/agents": "^1.9.3",
-    "@livekit/plugins-ai-coustics": "^0.3.2",
-    "@livekit/rtc-node": "^0.13.35",
-    "dotenv": "^17.4.2",
-    "zod": "^4.6.5"
   }
 }

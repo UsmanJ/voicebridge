@@ -21,9 +21,15 @@ criteria, and implementation plan.
 
 ## Current state
 
-The repository currently contains the LiveKit Node.js agent starter (in `src/`) as a runnable
-baseline. It will be replaced by the packages described in the architecture document. Don't build
-on `src/`.
+| Package                        | Status                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `@voicebridge/core`            | Provider-neutral contracts, turn coordinator, tool executor, wire contract v0 (experimental)      |
+| `@voicebridge/livekit-tokens`  | Server-side, least-privilege LiveKit credentials with allowlisted dispatch                        |
+| `@voicebridge/runtime-livekit` | LiveKit Agents runtime adapter, backend-controlled mode (verified sessions, no LLM)               |
+| `examples/`                    | Runnable help-desk demo: backend, host token route, LiveKit worker ([README](examples/README.md)) |
+
+Not yet built: browser client (next), agent-controlled mode (LLM plus tools), task-list example.
+Nothing is published or production-ready.
 
 ## Development setup
 
@@ -44,7 +50,8 @@ pnpm typecheck
 pnpm lint
 pnpm format:check
 pnpm test
-pnpm dev            # runs the starter agent against your LiveKit Cloud project (lk agent dev)
+pnpm build
+pnpm verify:core-isolation   # proves @voicebridge/core runs with no LiveKit packages installed
 ```
 
 The default configuration uses [LiveKit Inference](https://docs.livekit.io/agents/models/inference/),
