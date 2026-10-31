@@ -261,6 +261,45 @@ describe('issue(): application/session binding', () => {
   });
 });
 
+describe('issue(): issuance recording (room binding)', () => {
+  it('records the issued room and identity before returning, without the token', async () => {
+    const records: unknown[] = [];
+    const creds = await createLiveKitTokenIssuer(
+      options({
+        recordIssuance: async (r) => {
+          records.push(r);
+        },
+      }),
+    ).issue(REQUEST);
+    expect(records).toEqual([
+      {
+        applicationId: 'help-desk',
+        sessionRef: SESSION_REF,
+        roomName: creds.roomName,
+        participantIdentity: creds.participantIdentity,
+        expiresAt: creds.expiresAt,
+      },
+    ]);
+    expect(JSON.stringify(records)).not.toContain(creds.participantToken);
+  });
+
+  it.each([
+    ['throws', async () => Promise.reject(new Error('db down'))],
+    ['never settles (timeout)', () => new Promise<void>(() => {})],
+  ])('returns no token when recording %s', async (_name, recordIssuance) => {
+    const err = await rejection(
+      createLiveKitTokenIssuer(options({ recordIssuance, bindingTimeoutMs: 50 })).issue(REQUEST),
+    );
+    expect(err.code).toBe('session_not_authorized');
+  });
+
+  it('rejects a non-function recorder at construction', () => {
+    expect(() =>
+      createLiveKitTokenIssuer(options({ recordIssuance: 'yes' as never })),
+    ).toThrowError(expect.objectContaining({ code: 'config_error' }));
+  });
+});
+
 describe('issue(): agent dispatch allowlist', () => {
   it('dispatches the agent configured for the application, selected server-side', async () => {
     const issuer = createLiveKitTokenIssuer(

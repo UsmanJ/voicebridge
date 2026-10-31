@@ -162,16 +162,26 @@ it later for re-dispatch or for dispatching into rooms that already exist.
 
 ## Integration with the VoiceBridge worker
 
-The worker (`@voicebridge/runtime-livekit`, M3, **not yet built**) will:
+Record the issued room against the session with the optional `recordIssuance` hook. It's awaited
+before the token is returned, and a failure means no token:
 
-1. Parse job metadata with `parseDispatchMetadata(ctx.job.metadata)`. That rejects anything other
+```ts
+recordIssuance: async ({ applicationId, sessionRef, roomName }) =>
+  voiceSessions.attachRoom({ applicationId, sessionRef, roomName }),
+```
+
+The worker (`@voicebridge/runtime-livekit`) then, before connecting to the room or processing
+any audio:
+
+1. Parses job metadata with `parseDispatchMetadata(ctx.job.metadata)`. That rejects anything other
    than the exact v0 shape.
-2. Check `applicationId` against its own configured application. This is the core's
-   cross-application guard.
-3. **Resolve and verify `sessionRef` through a trusted server-side call to the application** (for
-   example, `POST /v0/sessions/start` with the service credential) before handling any turn.
-   That's still to be designed and implemented. A parsed `sessionRef` alone proves only that
-   someone holding the API secret minted it, not that the session is still valid.
+2. Checks `applicationId` against its own configured application (the cross-application guard).
+3. Calls the application's authenticated `POST /v0/sessions/start` with
+   `{ sessionRef, runtimeBinding: { runtime: 'livekit', roomName } }`. The backend must verify the
+   ref against its active, server-stored binding, including the recorded room, and answer
+   `{ authorized: true }`. Anything else ends the job without joining the room.
+
+A parsed `sessionRef` alone proves only that someone holding the API secret minted it.
 
 ## Errors
 

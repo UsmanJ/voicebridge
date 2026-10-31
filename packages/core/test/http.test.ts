@@ -228,21 +228,72 @@ describe('createHttpBackend: turns', () => {
         res.writeHead(204);
         res.end();
       } else {
-        json(res, 200, { kind: 'speak', text: 'Hello!' });
+        json(res, 200, { authorized: true, greeting: { kind: 'speak', text: 'Hello!' } });
       }
     });
     const conv = backend(stub.baseUrl, {
       endpoints: { sessionStart: '/v0/sessions/start', sessionEnd: '/v0/sessions/end' },
     }).conversation();
     await expect(conv.start!(ctx(), new AbortController().signal)).resolves.toEqual({
-      kind: 'speak',
-      text: 'Hello!',
+      authorized: true,
+      greeting: { kind: 'speak', text: 'Hello!' },
     });
     await conv.end!(ctx(), 'client_left');
     expect(stub.requests.map((r) => [r.url, r.body])).toEqual([
       ['/v0/sessions/start', { sessionRef: ctx().sessionRef }],
       ['/v0/sessions/end', { sessionRef: ctx().sessionRef, reason: 'client_left' }],
     ]);
+    expect(stub.requests[0]?.headers['idempotency-key']).toBe('sess-1:start');
+  });
+
+  it('sends the runtime binding (actual room) on session start', async () => {
+    stub = await startStubServer((_req, res) => json(res, 200, { authorized: true }));
+    const conv = backend(stub.baseUrl, {
+      endpoints: { sessionStart: '/v0/sessions/start' },
+    }).conversation();
+    const bound = ctx({ runtimeBinding: { runtime: 'livekit', roomName: 'vb_room123' } });
+    await expect(conv.start!(bound, new AbortController().signal)).resolves.toEqual({
+      authorized: true,
+    });
+    expect(stub.requests[0]?.body).toEqual({
+      sessionRef: ctx().sessionRef,
+      runtimeBinding: { runtime: 'livekit', roomName: 'vb_room123' },
+    });
+  });
+
+  it.each([
+    ['a greeting without explicit authorization', 200, { kind: 'speak', text: 'Hi' }],
+    ['authorized: false', 200, { authorized: false }],
+    ['an empty body', 204, undefined],
+    ['extra fields', 200, { authorized: true, userId: 'u_1' }],
+    ['403 forbidden', 403, { error: 'revoked' }],
+    ['404 unknown session', 404, { error: 'not found' }],
+    ['500 server error', 500, { error: 'db down' }],
+  ])('fails closed on session start with %s', async (_name, status, body) => {
+    stub = await startStubServer((_req, res) => {
+      if (body === undefined) {
+        res.writeHead(status);
+        res.end();
+      } else {
+        json(res, status, body);
+      }
+    });
+    const conv = backend(stub.baseUrl, {
+      endpoints: { sessionStart: '/v0/sessions/start' },
+    }).conversation();
+    const err = await capture(conv.start!(ctx(), new AbortController().signal));
+    expect(['invalid_backend_reply', 'backend_rejected']).toContain(err.code);
+  });
+
+  it('fails closed when session start times out', async () => {
+    stub = await startStubServer(() => {});
+    const conv = backend(stub.baseUrl, {
+      timeoutMs: 50,
+      endpoints: { sessionStart: '/v0/sessions/start' },
+    }).conversation();
+    expect((await capture(conv.start!(ctx(), new AbortController().signal))).code).toBe(
+      'backend_timeout',
+    );
   });
 });
 

@@ -33,6 +33,22 @@ export interface VoiceSessionRequest {
  */
 export type SessionBindingVerifier = (binding: Readonly<VoiceSessionRequest>) => Promise<boolean>;
 
+/** What was issued, for the host to persist alongside its session record. Contains no token. */
+export interface IssuanceRecord {
+  readonly applicationId: string;
+  readonly sessionRef: string;
+  readonly roomName: string;
+  readonly participantIdentity: string;
+  readonly expiresAt: number;
+}
+
+/**
+ * Persists the issued room (and identity) against the session in the host's store **before** the
+ * token is returned. The worker's `sessions/start` call then lets the backend check the room it
+ * recorded against the room the agent was actually dispatched to. Throwing refuses issuance.
+ */
+export type IssuanceRecorder = (record: IssuanceRecord) => Promise<void>;
+
 export interface LiveKitTokenIssuerOptions extends LiveKitServerConfig {
   /** Allowlist: applicationId → policy (agent name, optional text input). */
   applications: Readonly<Record<string, ApplicationTokenPolicy>>;
@@ -41,6 +57,12 @@ export interface LiveKitTokenIssuerOptions extends LiveKitServerConfig {
   ttlSeconds?: number;
   /** Max time to wait for `verifySessionBinding`. Default 3000 ms. */
   bindingTimeoutMs?: number;
+  /**
+   * Recommended for LiveKit deployments: record the issued room against the session so that
+   * session start can verify the expected room. Awaited (same timeout as the verifier). Failure
+   * means no token is returned.
+   */
+  recordIssuance?: IssuanceRecorder;
 }
 
 /** What the browser needs to connect. Contains no server credentials. */
@@ -80,6 +102,10 @@ export function createLiveKitTokenIssuer(options: LiveKitTokenIssuerOptions): Li
   const bindingTimeoutMs = options.bindingTimeoutMs ?? DEFAULT_BINDING_TIMEOUT_MS;
   if (!Number.isInteger(bindingTimeoutMs) || bindingTimeoutMs <= 0) {
     throw new LiveKitTokenError('config_error', 'bindingTimeoutMs must be a positive integer');
+  }
+  const record = options.recordIssuance;
+  if (record !== undefined && typeof record !== 'function') {
+    throw new LiveKitTokenError('config_error', 'recordIssuance must be a function');
   }
   const applicationIds = Object.freeze([...applications.keys()]);
 
@@ -148,13 +174,24 @@ export function createLiveKitTokenIssuer(options: LiveKitTokenIssuerOptions): Li
         cause,
       });
     }
-    return {
-      serverUrl,
-      participantToken,
-      roomName,
-      participantIdentity,
-      expiresAt: Date.now() + ttlSeconds * 1000,
-    };
+    const expiresAt = Date.now() + ttlSeconds * 1000;
+
+    // 4. Record: persist the room binding before the token leaves the server (fail closed).
+    if (record) {
+      try {
+        await withTimeout(
+          record(
+            Object.freeze({ applicationId, sessionRef, roomName, participantIdentity, expiresAt }),
+          ),
+          bindingTimeoutMs,
+        );
+      } catch (cause) {
+        throw new LiveKitTokenError('session_not_authorized', 'issuance could not be recorded', {
+          cause,
+        });
+      }
+    }
+    return { serverUrl, participantToken, roomName, participantIdentity, expiresAt };
   }
 
   return Object.freeze({ applicationIds, issue });

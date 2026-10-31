@@ -18,6 +18,7 @@ import {
   type TurnRequest,
   WIRE_HEADERS,
   WIRE_V0_PATHS,
+  sessionStartResponseSchema,
   toolInvocationResponseSchema,
 } from '../wire/v0.ts';
 import { postJson } from './client.ts';
@@ -143,9 +144,21 @@ export function createHttpBackend(options: HttpBackendOptions): HttpBackend {
       };
       if (startPath !== false) {
         adapter.start = async (ctx, signal) => {
-          const body: SessionStartRequest = { sessionRef: ctx.sessionRef };
+          const body: SessionStartRequest = {
+            sessionRef: ctx.sessionRef,
+            ...(ctx.runtimeBinding ? { runtimeBinding: { ...ctx.runtimeBinding } } : {}),
+          };
+          // Non-2xx is rejected by postJson (fail closed). Only an explicit
+          // `{ authorized: true }` counts as authorization.
           const res = await post(startPath, body, `${ctx.sessionId}:start`, signal);
-          return parseReply(res.body);
+          const parsed = sessionStartResponseSchema.safeParse(res.body);
+          if (!parsed.success) {
+            throw new VoiceBridgeError(
+              'invalid_backend_reply',
+              'session start response is not an explicit authorization',
+            );
+          }
+          return parsed.data;
         };
       }
       if (endPath !== false) {

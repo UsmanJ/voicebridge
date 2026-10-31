@@ -51,7 +51,12 @@
       "name": "turn request: sessionRef too short",
       "schema": "turnRequest",
       "valid": false,
-      "value": { "turnId": "t1", "sessionRef": "short", "text": "hi", "source": "speech" }
+      "value": {
+        "turnId": "t1",
+        "sessionRef": "short",
+        "text": "hi",
+        "source": "speech"
+      }
     },
     {
       "name": "turn request: sessionRef with unsafe characters",
@@ -79,77 +84,191 @@
       "name": "turn request: missing turnId",
       "schema": "turnRequest",
       "valid": false,
-      "value": { "sessionRef": "sr_0123456789abcdef", "text": "hi", "source": "speech" }
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "text": "hi",
+        "source": "speech"
+      }
     },
-
     {
       "name": "turn reply: speak",
       "schema": "turnReply",
       "valid": true,
-      "value": { "kind": "speak", "text": "We are open from nine to five." }
+      "value": {
+        "kind": "speak",
+        "text": "We are open from nine to five."
+      }
     },
     {
       "name": "turn reply: silent",
       "schema": "turnReply",
       "valid": true,
-      "value": { "kind": "silent" }
+      "value": {
+        "kind": "silent"
+      }
     },
     {
       "name": "turn reply: end with goodbye",
       "schema": "turnReply",
       "valid": true,
-      "value": { "kind": "end", "text": "Goodbye." }
+      "value": {
+        "kind": "end",
+        "text": "Goodbye."
+      }
     },
     {
       "name": "turn reply: end without text",
       "schema": "turnReply",
       "valid": true,
-      "value": { "kind": "end" }
+      "value": {
+        "kind": "end"
+      }
     },
     {
       "name": "turn reply: blank speak text rejected",
       "schema": "turnReply",
       "valid": false,
-      "value": { "kind": "speak", "text": "   " }
+      "value": {
+        "kind": "speak",
+        "text": "   "
+      }
     },
     {
       "name": "turn reply: speak without text rejected",
       "schema": "turnReply",
       "valid": false,
-      "value": { "kind": "speak" }
+      "value": {
+        "kind": "speak"
+      }
     },
     {
       "name": "turn reply: unknown kind rejected",
       "schema": "turnReply",
       "valid": false,
-      "value": { "kind": "transfer", "to": "agent" }
+      "value": {
+        "kind": "transfer",
+        "to": "agent"
+      }
     },
     {
       "name": "turn reply: extra field rejected",
       "schema": "turnReply",
       "valid": false,
-      "value": { "kind": "speak", "text": "Hi", "ssml": "<speak/>" }
+      "value": {
+        "kind": "speak",
+        "text": "Hi",
+        "ssml": "<speak/>"
+      }
     },
-
     {
       "name": "session start request",
       "schema": "sessionStartRequest",
       "valid": true,
-      "value": { "sessionRef": "sr_0123456789abcdef" }
+      "value": {
+        "sessionRef": "sr_0123456789abcdef"
+      }
+    },
+    {
+      "name": "session start request with runtime binding (actual room)",
+      "schema": "sessionStartRequest",
+      "valid": true,
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "runtimeBinding": {
+          "runtime": "livekit",
+          "roomName": "vb_AbCdEfGhIjKlMnOpQrStUv"
+        }
+      }
+    },
+    {
+      "name": "session start request: runtime binding with unknown field rejected",
+      "schema": "sessionStartRequest",
+      "valid": false,
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "runtimeBinding": {
+          "runtime": "livekit",
+          "roomName": "vb_x",
+          "token": "secret"
+        }
+      }
+    },
+    {
+      "name": "session start request: unsafe room name rejected",
+      "schema": "sessionStartRequest",
+      "valid": false,
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "runtimeBinding": {
+          "runtime": "livekit",
+          "roomName": "room with spaces"
+        }
+      }
+    },
+    {
+      "name": "session start response: authorized with greeting",
+      "schema": "sessionStartResponse",
+      "valid": true,
+      "value": {
+        "authorized": true,
+        "greeting": {
+          "kind": "speak",
+          "text": "Welcome to the help desk."
+        }
+      }
+    },
+    {
+      "name": "session start response: authorized without greeting",
+      "schema": "sessionStartResponse",
+      "valid": true,
+      "value": {
+        "authorized": true
+      }
+    },
+    {
+      "name": "session start response: greeting alone is not authorization",
+      "schema": "sessionStartResponse",
+      "valid": false,
+      "value": {
+        "kind": "speak",
+        "text": "Hello"
+      }
+    },
+    {
+      "name": "session start response: authorized false rejected",
+      "schema": "sessionStartResponse",
+      "valid": false,
+      "value": {
+        "authorized": false
+      }
+    },
+    {
+      "name": "session start response: extra fields rejected",
+      "schema": "sessionStartResponse",
+      "valid": false,
+      "value": {
+        "authorized": true,
+        "userId": "u_1"
+      }
     },
     {
       "name": "session end request",
       "schema": "sessionEndRequest",
       "valid": true,
-      "value": { "sessionRef": "sr_0123456789abcdef", "reason": "client_left" }
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "reason": "client_left"
+      }
     },
     {
       "name": "session end request: unknown reason rejected",
       "schema": "sessionEndRequest",
       "valid": false,
-      "value": { "sessionRef": "sr_0123456789abcdef", "reason": "crashed" }
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "reason": "crashed"
+      }
     },
-
     {
       "name": "tool invocation request",
       "schema": "toolInvocationRequest",
@@ -157,14 +276,20 @@
       "value": {
         "invocationId": "call_01",
         "sessionRef": "sr_0123456789abcdef",
-        "arguments": { "title": "Buy milk" }
+        "arguments": {
+          "title": "Buy milk"
+        }
       }
     },
     {
       "name": "tool invocation request: empty arguments object",
       "schema": "toolInvocationRequest",
       "valid": true,
-      "value": { "invocationId": "call_02", "sessionRef": "sr_0123456789abcdef", "arguments": {} }
+      "value": {
+        "invocationId": "call_02",
+        "sessionRef": "sr_0123456789abcdef",
+        "arguments": {}
+      }
     },
     {
       "name": "tool invocation request: arguments must be an object",
@@ -180,14 +305,22 @@
       "name": "tool invocation request: missing invocationId",
       "schema": "toolInvocationRequest",
       "valid": false,
-      "value": { "sessionRef": "sr_0123456789abcdef", "arguments": {} }
+      "value": {
+        "sessionRef": "sr_0123456789abcdef",
+        "arguments": {}
+      }
     },
-
     {
       "name": "tool response: ok with result",
       "schema": "toolInvocationResponse",
       "valid": true,
-      "value": { "ok": true, "result": { "taskId": "task_1", "title": "Buy milk" } }
+      "value": {
+        "ok": true,
+        "result": {
+          "taskId": "task_1",
+          "title": "Buy milk"
+        }
+      }
     },
     {
       "name": "tool response: confirmation required is a successful result",
@@ -208,32 +341,53 @@
       "valid": true,
       "value": {
         "ok": false,
-        "error": { "code": "not_found", "publicMessage": "I couldn't find that task." }
+        "error": {
+          "code": "not_found",
+          "publicMessage": "I couldn't find that task."
+        }
       }
     },
     {
       "name": "tool response: application error without message",
       "schema": "toolInvocationResponse",
       "valid": true,
-      "value": { "ok": false, "error": { "code": "forbidden" } }
+      "value": {
+        "ok": false,
+        "error": {
+          "code": "forbidden"
+        }
+      }
     },
     {
       "name": "tool response: error code must be snake_case",
       "schema": "toolInvocationResponse",
       "valid": false,
-      "value": { "ok": false, "error": { "code": "Not Found" } }
+      "value": {
+        "ok": false,
+        "error": {
+          "code": "Not Found"
+        }
+      }
     },
     {
       "name": "tool response: internal details field rejected",
       "schema": "toolInvocationResponse",
       "valid": false,
-      "value": { "ok": false, "error": { "code": "internal", "stack": "at db.ts:42" } }
+      "value": {
+        "ok": false,
+        "error": {
+          "code": "internal",
+          "stack": "at db.ts:42"
+        }
+      }
     },
     {
       "name": "tool response: missing ok",
       "schema": "toolInvocationResponse",
       "valid": false,
-      "value": { "result": {} }
+      "value": {
+        "result": {}
+      }
     }
   ]
 }

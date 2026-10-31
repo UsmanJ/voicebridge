@@ -22,6 +22,8 @@ export {
 } from './dispatch.ts';
 export { LiveKitTokenError, type LiveKitTokenErrorCode } from './errors.ts';
 export {
+  type IssuanceRecord,
+  type IssuanceRecorder,
   type LiveKitTokenIssuer,
   type LiveKitTokenIssuerOptions,
   type SessionBindingVerifier,

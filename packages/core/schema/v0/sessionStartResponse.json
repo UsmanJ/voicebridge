@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "authorized": {
+      "type": "boolean",
+      "const": true
+    },
+    "greeting": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "speak"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 4000,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "kind",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "silent"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "end"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 4000,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": [
+    "authorized"
+  ],
+  "additionalProperties": false,
+  "$id": "https://voicebridge.dev/schema/v0/sessionStartResponse.json",
+  "title": "sessionStartResponse",
+  "description": "VoiceBridge wire contract v0 (experimental): sessionStartResponse"
+}

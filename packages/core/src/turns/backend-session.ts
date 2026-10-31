@@ -8,7 +8,11 @@ import {
   type SessionEndReason,
   parseSessionContext,
 } from '../contracts/session.ts';
-import { MAX_REPLY_TEXT_LENGTH } from '../contracts/turn.ts';
+import {
+  MAX_REPLY_TEXT_LENGTH,
+  type SessionStartResult,
+  sessionStartResultSchema,
+} from '../contracts/turn.ts';
 import { VoiceBridgeError } from '../errors.ts';
 import { type Observer, type VoiceBridgeEvent, safeObserver } from '../observability.ts';
 import type { RuntimeEvents, RuntimeSession } from '../runtime/port.ts';
@@ -28,8 +32,14 @@ export interface BackendControlledOptions {
   pendingTurnHoldMs?: number;
   /** Timeout for the best-effort `conversation.end` notification. Default 2000 ms. */
   sessionEndTimeoutMs?: number;
-  /** Call `conversation.start` for a greeting, if implemented. Default true. */
+  /** Call `conversation.start` for a greeting, if implemented. Default true. Ignored when `startResult` is given. */
   greet?: boolean;
+  /**
+   * The result of a `conversation.start` call the runtime adapter already made, for example to
+   * authorize the session before connecting. When given, the core doesn't call `start` again
+   * and only speaks its greeting.
+   */
+  startResult?: SessionStartResult;
   observer?: Observer;
 }
 
@@ -158,9 +168,20 @@ export function runBackendControlledSession(
     applicationId: context.applicationId,
     mode: 'backend-controlled',
   });
-  if ((options.greet ?? true) && conversation.start) {
+  if (options.startResult !== undefined) {
+    const verified = sessionStartResultSchema.safeParse(options.startResult);
+    if (!verified.success) {
+      throw new VoiceBridgeError('config_error', 'startResult must be an explicit authorization');
+    }
+    const greeting = verified.data.greeting;
+    if (greeting) coordinator.startGreeting(async () => greeting);
+  } else if ((options.greet ?? true) && conversation.start) {
+    // Other runtimes: start is optional and best effort. A failure skips the greeting.
     const start = conversation.start.bind(conversation);
-    coordinator.startGreeting((signal) => start(context, signal));
+    coordinator.startGreeting(async (signal) => {
+      const result = sessionStartResultSchema.parse(await start(context, signal));
+      return result.greeting ?? { kind: 'silent' };
+    });
   }
 
   return {

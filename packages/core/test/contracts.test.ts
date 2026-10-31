@@ -32,7 +32,24 @@ describe('parseSessionContext', () => {
     expect(Object.isFrozen(parsed)).toBe(true);
   });
 
+  it('accepts and deep-freezes an optional runtime binding', () => {
+    const parsed = parseSessionContext({
+      ...ctx(),
+      runtimeBinding: { runtime: 'livekit', roomName: 'vb_abc' },
+    });
+    expect(parsed.runtimeBinding).toEqual({ runtime: 'livekit', roomName: 'vb_abc' });
+    expect(Object.isFrozen(parsed.runtimeBinding)).toBe(true);
+  });
+
   it.each([
+    [
+      'runtime binding with an unknown field',
+      { ...ctx(), runtimeBinding: { runtime: 'livekit', roomName: 'r', token: 'x' } },
+    ],
+    [
+      'runtime binding with an unsafe room name',
+      { ...ctx(), runtimeBinding: { runtime: 'livekit', roomName: 'a b' } },
+    ],
     ['missing sessionRef', { applicationId: 'help-desk', sessionId: 's' }],
     ['uppercase applicationId', { ...ctx(), applicationId: 'Help-Desk' }],
     ['short sessionRef', { ...ctx(), sessionRef: 'abc' }],

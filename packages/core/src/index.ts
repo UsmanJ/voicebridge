@@ -28,10 +28,12 @@ export {
 
 export {
   SESSION_END_REASONS,
+  type RuntimeBinding,
   type SessionContext,
   type SessionEndReason,
   applicationIdSchema,
   parseSessionContext,
+  runtimeBindingSchema,
   sessionContextSchema,
   sessionIdSchema,
   sessionRefSchema,
@@ -40,6 +42,8 @@ export {
 export {
   type BackendReply,
   MAX_REPLY_TEXT_LENGTH,
+  type SessionStartResult,
+  sessionStartResultSchema,
   MAX_TURN_TEXT_LENGTH,
   type TurnSource,
   type UserTurn,
@@ -108,6 +112,7 @@ export { parseBackendBaseUrl } from './http/url.ts';
 export {
   type SessionEndRequest,
   type SessionStartRequest,
+  type SessionStartResponse,
   type ToolInvocationRequest,
   type ToolInvocationResponse,
   type TurnRequest,
@@ -118,6 +123,7 @@ export {
   applicationErrorCodeSchema,
   sessionEndRequestSchema,
   sessionStartRequestSchema,
+  sessionStartResponseSchema,
   toolInvocationRequestSchema,
   toolInvocationResponseSchema,
   turnReplySchema,

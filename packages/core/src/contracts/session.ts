@@ -19,10 +19,24 @@ export const sessionIdSchema = z
   .string()
   .regex(/^[A-Za-z0-9_.:-]{1,128}$/, 'sessionId must be 1-128 safe characters');
 
+/**
+ * Where the session is actually running, as observed by the runtime adapter from a trusted source
+ * (for LiveKit: the dispatched job's room). Sent to the backend on `sessions/start` so it can check
+ * the room recorded at issuance against the real one.
+ */
+export const runtimeBindingSchema = z.strictObject({
+  /** Runtime kind, for example `livekit`. */
+  runtime: z.string().regex(/^[a-z][a-z0-9-]{0,31}$/),
+  /** The runtime's room or call identifier. */
+  roomName: z.string().regex(/^[A-Za-z0-9_.:-]{1,128}$/),
+});
+export type RuntimeBinding = Readonly<z.infer<typeof runtimeBindingSchema>>;
+
 export const sessionContextSchema = z.strictObject({
   applicationId: applicationIdSchema,
   sessionId: sessionIdSchema,
   sessionRef: sessionRefSchema,
+  runtimeBinding: runtimeBindingSchema.optional(),
 });
 
 /**
@@ -54,5 +68,8 @@ export function parseSessionContext(input: unknown): SessionContext {
       `invalid session context: ${fields.join(', ')}`,
     );
   }
-  return Object.freeze(result.data);
+  const { runtimeBinding, ...rest } = result.data;
+  return Object.freeze(
+    runtimeBinding ? { ...rest, runtimeBinding: Object.freeze({ ...runtimeBinding }) } : rest,
+  );
 }
