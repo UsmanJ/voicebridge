@@ -12,10 +12,11 @@ Third-party material included in this repository
    Portions of this repository are derived from
    https://github.com/livekit-examples/agent-starter-node, which is licensed
    under the MIT License reproduced below. Files derived from it include:
-   AGENTS.md, Dockerfile, .dockerignore, .github/workflows/tests.yml,
-   .github/workflows/simulations.yml, scenarios.yaml, src/main.ts,
-   src/agent.ts, tsconfig.json, eslint.config.ts, .prettierrc, and the
-   template's .gitignore.
+   AGENTS.md, .github/workflows/tests.yml, eslint.config.ts, .prettierrc,
+   the template's .gitignore, and the session setup in
+   packages/runtime-livekit/src/providers.ts (adapted from the template's
+   src/main.ts). The template's src/ agent, Dockerfile, .dockerignore,
+   scenarios.yaml, and simulations workflow were removed in M4.
 
    MIT License
 
@@ -60,10 +61,5 @@ that contains them must comply with their terms:
   use and redistribution only together with the LiveKit Agents framework and
   requires reproducing LiveKit's copyright notice. It's not an OSI-approved
   licence.
-
-- @livekit/plugins-ai-coustics: "SEE LICENSE IN
-  https://livekit.io/legal/terms-of-service" (proprietary). Used only by the
-  starter agent in src/ and scheduled to become optional (see
-  docs/ARCHITECTURE.md §11).
 
 - @livekit/av-* platform binaries: LGPL-2.1-or-later (FFmpeg).
