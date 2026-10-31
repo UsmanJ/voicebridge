@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { defineApplication } from '../src/contracts/application.ts';
-import type { BackendReply } from '../src/contracts/turn.ts';
+import type { BackendReply, SessionStartResult } from '../src/contracts/turn.ts';
 import { VoiceBridgeError } from '../src/errors.ts';
 import { FakeRuntime } from '../src/testing/fake-runtime.ts';
 import { deferred, inMemoryConversation, neverUntilAborted } from '../src/testing/in-memory.ts';
@@ -233,28 +233,33 @@ describe('runBackendControlledSession: failures', () => {
   });
 });
 
-describe('runBackendControlledSession: greeting', () => {
-  it('speaks the backend greeting at session start', async () => {
+describe('runBackendControlledSession: greeting and session start', () => {
+  it('speaks the backend greeting from an authorized start', async () => {
     const { runtime } = setup(() => ({ kind: 'speak', text: 'reply' }), {
-      conversation: { start: async () => ({ kind: 'speak', text: 'Welcome to the help desk.' }) },
+      conversation: {
+        start: async () => ({
+          authorized: true,
+          greeting: { kind: 'speak', text: 'Welcome to the help desk.' },
+        }),
+      },
     });
     await runtime.untilSpoken(1);
     expect(runtime.spoken).toEqual(['Welcome to the help desk.']);
   });
 
   it('a user turn supersedes a slow greeting', async () => {
-    const greeting = deferred<BackendReply>();
+    const start = deferred<SessionStartResult>();
     const { runtime } = setup(() => ({ kind: 'speak', text: 'answer' }), {
-      conversation: { start: () => greeting.promise },
+      conversation: { start: () => start.promise },
     });
     runtime.userSays('question');
     await runtime.untilSpoken(1);
-    greeting.resolve({ kind: 'speak', text: 'LATE GREETING' });
+    start.resolve({ authorized: true, greeting: { kind: 'speak', text: 'LATE GREETING' } });
     await tick(10);
     expect(runtime.spoken).toEqual(['answer']);
   });
 
-  it('skips a failed greeting silently instead of apologising', async () => {
+  it('skips a failed optional start silently instead of apologising', async () => {
     const { runtime, obs } = setup(() => ({ kind: 'speak', text: 'answer' }), {
       conversation: {
         start: async () => {
@@ -265,6 +270,47 @@ describe('runBackendControlledSession: greeting', () => {
     await tick(10);
     expect(runtime.spoken).toEqual([]);
     expect(obs.ofType('backend_failed')[0]?.operation).toBe('session_start');
+  });
+
+  it('treats a start result without explicit authorization as a failure', async () => {
+    const { runtime, obs } = setup(() => ({ kind: 'speak', text: 'answer' }), {
+      conversation: {
+        start: async () =>
+          ({ kind: 'speak', text: 'NOT AN AUTHORIZATION' }) as unknown as SessionStartResult,
+      },
+    });
+    await tick(10);
+    expect(runtime.spoken).toEqual([]);
+    expect(obs.ofType('backend_failed')[0]?.operation).toBe('session_start');
+  });
+
+  it('uses a pre-verified startResult without calling start again', async () => {
+    const start = vi.fn(async (): Promise<SessionStartResult> => ({ authorized: true }));
+    const { runtime } = setup(() => ({ kind: 'speak', text: 'answer' }), {
+      conversation: { start },
+      session: {
+        startResult: { authorized: true, greeting: { kind: 'speak', text: 'Verified hello.' } },
+      },
+    });
+    await runtime.untilSpoken(1);
+    expect(runtime.spoken).toEqual(['Verified hello.']);
+    expect(start).not.toHaveBeenCalled();
+  });
+
+  it('speaks nothing when a pre-verified start has no greeting', async () => {
+    const { runtime } = setup(() => ({ kind: 'speak', text: 'answer' }), {
+      session: { startResult: { authorized: true } },
+    });
+    await tick(10);
+    expect(runtime.spoken).toEqual([]);
+  });
+
+  it('refuses a startResult that is not an explicit authorization', () => {
+    expect(() =>
+      setup(() => ({ kind: 'silent' }), {
+        session: { startResult: { authorized: false } as unknown as SessionStartResult },
+      }),
+    ).toThrowError(expect.objectContaining({ code: 'config_error' }));
   });
 });
 

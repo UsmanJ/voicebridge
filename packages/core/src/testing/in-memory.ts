@@ -1,6 +1,6 @@
 import type { ConversationAdapter } from '../contracts/application.ts';
 import type { SessionContext, SessionEndReason } from '../contracts/session.ts';
-import type { BackendReply, UserTurn } from '../contracts/turn.ts';
+import type { BackendReply, SessionStartResult, UserTurn } from '../contracts/turn.ts';
 
 export interface RecordedCall {
   readonly turn: UserTurn;
@@ -16,7 +16,7 @@ export interface InMemoryConversation extends ConversationAdapter {
 }
 
 export interface InMemoryConversationOptions {
-  start?: (ctx: SessionContext, signal: AbortSignal) => Promise<BackendReply>;
+  start?: (ctx: SessionContext, signal: AbortSignal) => Promise<SessionStartResult>;
   end?: (ctx: SessionContext, reason: SessionEndReason) => Promise<void>;
 }
 

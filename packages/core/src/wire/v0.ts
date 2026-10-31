@@ -6,10 +6,15 @@
  * example, a future Python runtime) implement this protocol. They don't import this package.
  */
 import { z } from 'zod';
-import { SESSION_END_REASONS, sessionRefSchema } from '../contracts/session.ts';
+import {
+  SESSION_END_REASONS,
+  runtimeBindingSchema,
+  sessionRefSchema,
+} from '../contracts/session.ts';
 import {
   MAX_TURN_TEXT_LENGTH,
   backendReplySchema,
+  sessionStartResultSchema,
   turnIdSchema,
   turnSourceSchema,
 } from '../contracts/turn.ts';
@@ -35,11 +40,25 @@ export const turnRequestSchema = z.strictObject({
   source: turnSourceSchema,
 });
 
-/** `POST /v0/turns` and `POST /v0/sessions/start` response. */
+/** `POST /v0/turns` response. */
 export const turnReplySchema = backendReplySchema;
 
-/** `POST /v0/sessions/start` request. */
-export const sessionStartRequestSchema = z.strictObject({ sessionRef: sessionRefSchema });
+/**
+ * `POST /v0/sessions/start` request: session start **and authorization**. `runtimeBinding` is
+ * present when the runtime can report where the session actually runs (LiveKit: the room). The
+ * backend must check it against the binding it stored at issuance.
+ */
+export const sessionStartRequestSchema = z.strictObject({
+  sessionRef: sessionRefSchema,
+  runtimeBinding: runtimeBindingSchema.optional(),
+});
+
+/**
+ * `POST /v0/sessions/start` response. `authorized: true` is an explicit assertion that the backend
+ * verified the session against its trusted, active, server-stored binding. Reject with a non-2xx
+ * status otherwise.
+ */
+export const sessionStartResponseSchema = sessionStartResultSchema;
 
 /** `POST /v0/sessions/end` request (response: 204). */
 export const sessionEndRequestSchema = z.strictObject({
@@ -71,6 +90,7 @@ export const toolInvocationResponseSchema = z.discriminatedUnion('ok', [
 
 export type TurnRequest = z.infer<typeof turnRequestSchema>;
 export type SessionStartRequest = z.infer<typeof sessionStartRequestSchema>;
+export type SessionStartResponse = z.infer<typeof sessionStartResponseSchema>;
 export type SessionEndRequest = z.infer<typeof sessionEndRequestSchema>;
 export type ToolInvocationRequest = z.infer<typeof toolInvocationRequestSchema>;
 export type ToolInvocationResponse = z.infer<typeof toolInvocationResponseSchema>;
@@ -80,6 +100,7 @@ export const WIRE_V0_SCHEMAS = {
   turnRequest: turnRequestSchema,
   turnReply: turnReplySchema,
   sessionStartRequest: sessionStartRequestSchema,
+  sessionStartResponse: sessionStartResponseSchema,
   sessionEndRequest: sessionEndRequestSchema,
   toolInvocationRequest: toolInvocationRequestSchema,
   toolInvocationResponse: toolInvocationResponseSchema,

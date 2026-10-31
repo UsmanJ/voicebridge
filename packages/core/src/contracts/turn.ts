@@ -29,3 +29,15 @@ export const backendReplySchema = z.discriminatedUnion('kind', [
 ]);
 
 export type BackendReply = z.infer<typeof backendReplySchema>;
+
+/**
+ * Result of `sessions/start`. Returning it is an explicit statement that the backend verified the
+ * session against its trusted, server-stored binding (application, session ref, and, when a
+ * runtime binding is provided, room). Anything else is not authorization.
+ */
+export const sessionStartResultSchema = z.strictObject({
+  authorized: z.literal(true),
+  greeting: backendReplySchema.optional(),
+});
+
+export type SessionStartResult = z.infer<typeof sessionStartResultSchema>;

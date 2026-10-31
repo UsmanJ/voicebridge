@@ -139,12 +139,12 @@ Defined as Zod schemas in `core`, exported as JSON Schema, and pinned by shared 
 vectors. A future Python runtime (for example a Pipecat adapter) would implement **this wire
 protocol** and replay the same vectors. It wouldn't import the TypeScript core (§9.2).
 
-| Call                                                     | Request                                                                     | Response                                                                  |
-| -------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `POST {base}/v0/turns` (if backend-controlled supported) | `{ turnId, sessionRef, text, source: "speech" \| "text" }`                  | `{ kind: "speak", text } \| { kind: "silent" } \| { kind: "end", text? }` |
-| `POST {base}/v0/sessions/start` (optional)               | `{ sessionRef }`                                                            | Same reply union (greeting)                                               |
-| `POST {base}/v0/sessions/end` (optional, best effort)    | `{ sessionRef, reason }`                                                    | `204`                                                                     |
-| `POST {base}{toolPath}` (per registered tool)            | `{ invocationId, sessionRef, arguments }` (arguments already Zod-validated) | `{ ok: true, result } \| { ok: false, error: { code, publicMessage? } }`  |
+| Call                                                                                         | Request                                                                     | Response                                                                       |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `POST {base}/v0/turns` (if backend-controlled supported)                                     | `{ turnId, sessionRef, text, source: "speech" \| "text" }`                  | `{ kind: "speak", text } \| { kind: "silent" } \| { kind: "end", text? }`      |
+| `POST {base}/v0/sessions/start` (optional in core; **required and authorizing for LiveKit**) | `{ sessionRef, runtimeBinding?: { runtime, roomName } }`                    | `{ authorized: true, greeting?: BackendReply }`. Non-2xx means not authorized. |
+| `POST {base}/v0/sessions/end` (optional, best effort)                                        | `{ sessionRef, reason }`                                                    | `204`                                                                          |
+| `POST {base}{toolPath}` (per registered tool)                                                | `{ invocationId, sessionRef, arguments }` (arguments already Zod-validated) | `{ ok: true, result } \| { ok: false, error: { code, publicMessage? } }`       |
 
 Headers on every call:
 
@@ -156,6 +156,17 @@ Headers on every call:
 
 Tool paths come from registration config, never from LLM output. Limits on every call: timeout,
 maximum response bytes, schema validation.
+
+**Session start is also authorization (changed during M3).** The backend resolves `sessionRef`
+against its trusted, active, server-stored binding for the application. When `runtimeBinding` is
+present, it also checks that the room recorded at issuance equals the room the runtime reports.
+Only then does it answer `{ authorized: true }`. Any other response, including any non-2xx status,
+timeout, or schema-invalid body, is treated as **not authorized**. Calls carry
+`Idempotency-Key: {sessionId}:start`, and duplicate starts must not duplicate side effects.
+
+Why this change was needed: v0 originally sent only `{ sessionRef }` and answered with a generic
+greeting. That couldn't carry the actual room, and a greeting-only `200` would have counted as
+authorization (an accidental fail-open).
 
 **Optional application capabilities.** A backend implements only what it uses:
 

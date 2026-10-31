@@ -2,7 +2,7 @@ import { VoiceBridgeError } from '../errors.ts';
 import type { ExecutionMode } from '../observability.ts';
 import { type ToolDefinition, ToolRegistry } from '../tools/registry.ts';
 import { type SessionContext, type SessionEndReason, applicationIdSchema } from './session.ts';
-import type { BackendReply, UserTurn } from './turn.ts';
+import type { BackendReply, SessionStartResult, UserTurn } from './turn.ts';
 
 /** Backend-controlled mode: the application decides what is said for each turn. */
 export interface ConversationAdapter {
@@ -12,8 +12,15 @@ export interface ConversationAdapter {
    * processed, so treat `turnId` as an idempotency key.
    */
   respond(turn: UserTurn, ctx: SessionContext, signal: AbortSignal): Promise<BackendReply>;
-  /** Optional greeting when the session starts. */
-  start?(ctx: SessionContext, signal: AbortSignal): Promise<BackendReply>;
+  /**
+   * Session start and authorization. Resolve with `{ authorized: true, greeting? }` only after
+   * verifying `ctx.sessionRef` against a trusted, active, server-stored binding for
+   * `ctx.applicationId` (and `ctx.runtimeBinding.roomName`, when present). Reject otherwise.
+   *
+   * Optional in the core. Runtime adapters may require it (the LiveKit adapter does, and fails
+   * closed). Must be idempotent: the same session may be started more than once.
+   */
+  start?(ctx: SessionContext, signal: AbortSignal): Promise<SessionStartResult>;
   /** Optional best-effort notification that the session ended. */
   end?(ctx: SessionContext, reason: SessionEndReason): Promise<void>;
 }
