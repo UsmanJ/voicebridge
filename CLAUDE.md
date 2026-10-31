@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-VoiceBridge (working title): an open-source, application-agnostic voice AI integration gateway
-built on LiveKit Agents for Node.js. Architecture and plan: @docs/ARCHITECTURE.md.
+VoiceBridge (working title): open-source, provider-agnostic voice AI integration middleware.
+LiveKit Agents (Node.js) is the first runtime adapter. Architecture and plan: @docs/ARCHITECTURE.md.
 LiveKit-specific workflow (docs lookup, skills, debugger, simulations): @AGENTS.md.
 
 This is a **public repository from day one**. Write every file, commit message, and comment as if
@@ -14,9 +14,20 @@ TypeScript (strict), Node.js 24 LTS, pnpm workspaces, `@livekit/agents`, Zod, Vi
 
 ## Architecture rules
 
-- `packages/core` must not import LiveKit. Application developers depend on `core` contracts only.
-- `packages/agent` owns all LiveKit orchestration. `packages/server` owns token minting and must not
-  depend on `@livekit/agents`.
+- VoiceBridge is provider-neutral middleware (see `docs/adr/0001-provider-neutral-core.md`).
+  `packages/core` depends on `zod` only: no LiveKit or other vendor imports, ever. Tests enforce this.
+- Vendor code lives only in runtime adapters (`packages/runtime-livekit`) and runtime-specific server
+  helpers (`packages/livekit-tokens`, which must not depend on `@livekit/agents`).
+- Don't abstract media transports or STT/LLM/TTS providers. They belong to the runtime. Don't
+  re-implement LLM orchestration in core. Don't build speculative runtime adapters. The runtime
+  port is 0.x until a second real runtime exists.
+- The wire contract with application backends (`/v0`) is the language-neutral interface. It's
+  **experimental**: don't call it stable or v1 until both example apps validate it. Every change
+  updates the JSON Schema and conformance vectors.
+- Security invariants: opaque `sessionRef` resolved server-side, one service credential per
+  application, no cross-application state, no credentials in client tokens or metadata,
+  `record: false` by default, obsolete replies never spoken, and cancellation never assumed to undo
+  backend writes.
 - No application-specific prompts, personas, or domain logic in any package. They belong in
   `examples/` or in the user's app.
 - Two modes: backend-controlled (backend text is spoken verbatim, no LLM configured) and
