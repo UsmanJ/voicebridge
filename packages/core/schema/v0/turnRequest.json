@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "turnId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "sessionRef": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{16,256}$"
+    },
+    "text": {
+      "type": "string",
+      "maxLength": 10000
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "speech",
+        "text"
+      ]
+    }
+  },
+  "required": [
+    "turnId",
+    "sessionRef",
+    "text",
+    "source"
+  ],
+  "additionalProperties": false,
+  "$id": "https://voicebridge.dev/schema/v0/turnRequest.json",
+  "title": "turnRequest",
+  "description": "VoiceBridge wire contract v0 (experimental): turnRequest"
+}

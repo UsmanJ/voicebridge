@@ -44,8 +44,37 @@ jobs:
       - name: Check formatting
         run: pnpm run format:check
 
+      - name: Build packages
+        run: pnpm run build
+
       - name: Run tests
         run: pnpm run test
+
+  core-isolated:
+    name: Core runs without vendor packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Version comes from the "packageManager" field in package.json.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Packs @voicebridge/core, installs it with npm in an empty directory outside the workspace,
+      # fails if any @livekit/* (or other vendor) package is present, then runs the core test suite.
+      - name: Verify core isolation
+        run: pnpm run verify:core-isolation
 
   secret-scan:
     name: Secret scan

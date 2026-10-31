@@ -1,0 +1,239 @@
+{
+  "wireVersion": "0",
+  "description": "Shared conformance vectors for the experimental VoiceBridge wire contract v0. Any implementation, in any language, must accept every vector with valid=true and reject every vector with valid=false. All data is synthetic.",
+  "vectors": [
+    {
+      "name": "turn request: speech",
+      "schema": "turnRequest",
+      "valid": true,
+      "value": {
+        "turnId": "t1",
+        "sessionRef": "sr_0123456789abcdef",
+        "text": "What are your opening hours?",
+        "source": "speech"
+      }
+    },
+    {
+      "name": "turn request: typed text, exact whitespace preserved",
+      "schema": "turnRequest",
+      "valid": true,
+      "value": {
+        "turnId": "t2",
+        "sessionRef": "sr_0123456789abcdef",
+        "text": "  Exact text, with punctuation!  ",
+        "source": "text"
+      }
+    },
+    {
+      "name": "turn request: empty text is allowed by the wire (runtimes skip blank turns)",
+      "schema": "turnRequest",
+      "valid": true,
+      "value": {
+        "turnId": "t3",
+        "sessionRef": "sr_0123456789abcdef",
+        "text": "",
+        "source": "speech"
+      }
+    },
+    {
+      "name": "turn request: unknown field rejected",
+      "schema": "turnRequest",
+      "valid": false,
+      "value": {
+        "turnId": "t1",
+        "sessionRef": "sr_0123456789abcdef",
+        "text": "hi",
+        "source": "speech",
+        "userId": "u-1"
+      }
+    },
+    {
+      "name": "turn request: sessionRef too short",
+      "schema": "turnRequest",
+      "valid": false,
+      "value": { "turnId": "t1", "sessionRef": "short", "text": "hi", "source": "speech" }
+    },
+    {
+      "name": "turn request: sessionRef with unsafe characters",
+      "schema": "turnRequest",
+      "valid": false,
+      "value": {
+        "turnId": "t1",
+        "sessionRef": "sr_0123456789abcdef/../x",
+        "text": "hi",
+        "source": "speech"
+      }
+    },
+    {
+      "name": "turn request: unknown source",
+      "schema": "turnRequest",
+      "valid": false,
+      "value": {
+        "turnId": "t1",
+        "sessionRef": "sr_0123456789abcdef",
+        "text": "hi",
+        "source": "video"
+      }
+    },
+    {
+      "name": "turn request: missing turnId",
+      "schema": "turnRequest",
+      "valid": false,
+      "value": { "sessionRef": "sr_0123456789abcdef", "text": "hi", "source": "speech" }
+    },
+
+    {
+      "name": "turn reply: speak",
+      "schema": "turnReply",
+      "valid": true,
+      "value": { "kind": "speak", "text": "We are open from nine to five." }
+    },
+    {
+      "name": "turn reply: silent",
+      "schema": "turnReply",
+      "valid": true,
+      "value": { "kind": "silent" }
+    },
+    {
+      "name": "turn reply: end with goodbye",
+      "schema": "turnReply",
+      "valid": true,
+      "value": { "kind": "end", "text": "Goodbye." }
+    },
+    {
+      "name": "turn reply: end without text",
+      "schema": "turnReply",
+      "valid": true,
+      "value": { "kind": "end" }
+    },
+    {
+      "name": "turn reply: blank speak text rejected",
+      "schema": "turnReply",
+      "valid": false,
+      "value": { "kind": "speak", "text": "   " }
+    },
+    {
+      "name": "turn reply: speak without text rejected",
+      "schema": "turnReply",
+      "valid": false,
+      "value": { "kind": "speak" }
+    },
+    {
+      "name": "turn reply: unknown kind rejected",
+      "schema": "turnReply",
+      "valid": false,
+      "value": { "kind": "transfer", "to": "agent" }
+    },
+    {
+      "name": "turn reply: extra field rejected",
+      "schema": "turnReply",
+      "valid": false,
+      "value": { "kind": "speak", "text": "Hi", "ssml": "<speak/>" }
+    },
+
+    {
+      "name": "session start request",
+      "schema": "sessionStartRequest",
+      "valid": true,
+      "value": { "sessionRef": "sr_0123456789abcdef" }
+    },
+    {
+      "name": "session end request",
+      "schema": "sessionEndRequest",
+      "valid": true,
+      "value": { "sessionRef": "sr_0123456789abcdef", "reason": "client_left" }
+    },
+    {
+      "name": "session end request: unknown reason rejected",
+      "schema": "sessionEndRequest",
+      "valid": false,
+      "value": { "sessionRef": "sr_0123456789abcdef", "reason": "crashed" }
+    },
+
+    {
+      "name": "tool invocation request",
+      "schema": "toolInvocationRequest",
+      "valid": true,
+      "value": {
+        "invocationId": "call_01",
+        "sessionRef": "sr_0123456789abcdef",
+        "arguments": { "title": "Buy milk" }
+      }
+    },
+    {
+      "name": "tool invocation request: empty arguments object",
+      "schema": "toolInvocationRequest",
+      "valid": true,
+      "value": { "invocationId": "call_02", "sessionRef": "sr_0123456789abcdef", "arguments": {} }
+    },
+    {
+      "name": "tool invocation request: arguments must be an object",
+      "schema": "toolInvocationRequest",
+      "valid": false,
+      "value": {
+        "invocationId": "call_03",
+        "sessionRef": "sr_0123456789abcdef",
+        "arguments": ["Buy milk"]
+      }
+    },
+    {
+      "name": "tool invocation request: missing invocationId",
+      "schema": "toolInvocationRequest",
+      "valid": false,
+      "value": { "sessionRef": "sr_0123456789abcdef", "arguments": {} }
+    },
+
+    {
+      "name": "tool response: ok with result",
+      "schema": "toolInvocationResponse",
+      "valid": true,
+      "value": { "ok": true, "result": { "taskId": "task_1", "title": "Buy milk" } }
+    },
+    {
+      "name": "tool response: confirmation required is a successful result",
+      "schema": "toolInvocationResponse",
+      "valid": true,
+      "value": {
+        "ok": true,
+        "result": {
+          "status": "confirmation_required",
+          "confirmationId": "conf_01",
+          "summary": "Delete 1 task: Buy milk"
+        }
+      }
+    },
+    {
+      "name": "tool response: application error with public message",
+      "schema": "toolInvocationResponse",
+      "valid": true,
+      "value": {
+        "ok": false,
+        "error": { "code": "not_found", "publicMessage": "I couldn't find that task." }
+      }
+    },
+    {
+      "name": "tool response: application error without message",
+      "schema": "toolInvocationResponse",
+      "valid": true,
+      "value": { "ok": false, "error": { "code": "forbidden" } }
+    },
+    {
+      "name": "tool response: error code must be snake_case",
+      "schema": "toolInvocationResponse",
+      "valid": false,
+      "value": { "ok": false, "error": { "code": "Not Found" } }
+    },
+    {
+      "name": "tool response: internal details field rejected",
+      "schema": "toolInvocationResponse",
+      "valid": false,
+      "value": { "ok": false, "error": { "code": "internal", "stack": "at db.ts:42" } }
+    },
+    {
+      "name": "tool response: missing ok",
+      "schema": "toolInvocationResponse",
+      "valid": false,
+      "value": { "result": {} }
+    }
+  ]
+}

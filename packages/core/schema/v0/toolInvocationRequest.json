@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "invocationId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+    },
+    "sessionRef": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{16,256}$"
+    },
+    "arguments": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "invocationId",
+    "sessionRef",
+    "arguments"
+  ],
+  "additionalProperties": false,
+  "$id": "https://voicebridge.dev/schema/v0/toolInvocationRequest.json",
+  "title": "toolInvocationRequest",
+  "description": "VoiceBridge wire contract v0 (experimental): toolInvocationRequest"
+}
