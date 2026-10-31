@@ -3,9 +3,10 @@
 > **Status: pre-alpha, under active design.** VoiceBridge is a working title. Nothing here is
 > production-ready, and public APIs don't exist yet.
 
-VoiceBridge is an open-source, application-agnostic gateway for adding a real-time voice interface
-to existing applications and backend APIs, built on
-[LiveKit Agents for Node.js](https://github.com/livekit/agents-js).
+VoiceBridge is open-source, provider-agnostic middleware for adding real-time voice to existing
+applications and backend APIs through one stable, versioned interface. The core has no vendor
+dependencies. [LiveKit Agents for Node.js](https://github.com/livekit/agents-js) is the first
+supported runtime. See [ADR 0001](docs/adr/0001-provider-neutral-core.md).
 
 The goal: a developer connects their backend with a small, typed adapter, and VoiceBridge handles
 audio transport, speech recognition, turn-taking, and speech synthesis. It supports two modes:
