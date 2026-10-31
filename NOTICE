@@ -1,0 +1,69 @@
+VoiceBridge
+Copyright 2026 The VoiceBridge Authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+-------------------------------------------------------------------------------
+Third-party material included in this repository
+-------------------------------------------------------------------------------
+
+1. LiveKit Agents starter for Node.js
+
+   Portions of this repository are derived from
+   https://github.com/livekit-examples/agent-starter-node, which is licensed
+   under the MIT License reproduced below. Files derived from it include:
+   AGENTS.md, Dockerfile, .dockerignore, .github/workflows/tests.yml,
+   .github/workflows/simulations.yml, scenarios.yaml, src/main.ts,
+   src/agent.ts, tsconfig.json, eslint.config.ts, .prettierrc, and the
+   template's .gitignore.
+
+   MIT License
+
+   Copyright (c) 2025  LiveKit, Inc.
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+2. LiveKit agent skills
+
+   The files under .claude/skills/ are copied unmodified from
+   https://github.com/livekit/agent-skills (author: LiveKit), declared as
+   "license: MIT" in each SKILL.md. Versions are pinned in skills-lock.json.
+   The MIT License text above applies; copyright LiveKit, Inc.
+
+-------------------------------------------------------------------------------
+Notable licences of runtime dependencies (not included in this repository)
+-------------------------------------------------------------------------------
+
+These packages are installed from npm by `pnpm install`. They aren't vendored
+here, but anyone redistributing a build artifact (for example a Docker image)
+that contains them must comply with their terms:
+
+- @livekit/local-inference (transitive dependency of @livekit/agents):
+  "Apache-2.0 AND LicenseRef-LiveKit-Model". The bundled turn-detector and VAD
+  model weights are under the LiveKit Model License Agreement, which permits
+  use and redistribution only together with the LiveKit Agents framework and
+  requires reproducing LiveKit's copyright notice. It's not an OSI-approved
+  licence.
+
+- @livekit/plugins-ai-coustics: "SEE LICENSE IN
+  https://livekit.io/legal/terms-of-service" (proprietary). Used only by the
+  starter agent in src/ and scheduled to become optional (see
+  docs/ARCHITECTURE.md §11).
+
+- @livekit/av-* platform binaries: LGPL-2.1-or-later (FFmpeg).
