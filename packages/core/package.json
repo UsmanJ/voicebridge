@@ -1,0 +1,42 @@
+{
+  "name": "@voicebridge/core",
+  "version": "0.0.0",
+  "description": "Provider-neutral core of VoiceBridge: application contracts, turn coordination, tool execution, and the experimental v0 wire contract. No vendor dependencies.",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "schema",
+    "conformance",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --run",
+    "generate:schemas": "node scripts/generate-schemas.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

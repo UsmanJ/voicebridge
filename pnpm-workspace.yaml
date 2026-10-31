@@ -1,4 +1,8 @@
-allowBuilds:
-  '@livekit/local-inference': true
-  protobufjs: true
-  sharp: true
+packages:
+  - packages/*
+
+# Dependencies allowed to run install scripts (pnpm 10 setting).
+onlyBuiltDependencies:
+  - '@livekit/local-inference'
+  - protobufjs
+  - sharp

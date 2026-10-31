@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "sessionRef": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{16,256}$"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "client_left",
+        "backend_ended",
+        "runtime_error",
+        "shutdown",
+        "timeout"
+      ]
+    }
+  },
+  "required": [
+    "sessionRef",
+    "reason"
+  ],
+  "additionalProperties": false,
+  "$id": "https://voicebridge.dev/schema/v0/sessionEndRequest.json",
+  "title": "sessionEndRequest",
+  "description": "VoiceBridge wire contract v0 (experimental): sessionEndRequest"
+}

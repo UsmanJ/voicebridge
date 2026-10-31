@@ -413,9 +413,12 @@ conformance suite against it (it exercises schema, error envelope, and timeout b
 1. **Static:** a Vitest test asserts `packages/core/package.json` has exactly `{ zod }` as runtime
    dependencies, and that no file under `packages/core/src` imports a non-relative module other
    than `zod` and `node:*`.
-2. **Physical isolation (CI job `core-isolated`):** `pnpm deploy --filter @voicebridge/core <dir>`
-   produces a directory containing only core's dependencies. The job asserts
-   `node_modules/@livekit` is absent there, then runs core's test suite in it.
+2. **Physical isolation (CI job `core-isolated`, `pnpm verify:core-isolation`):** the script
+   `pnpm pack`s `@voicebridge/core` and `npm install`s the tarball (plus only the test runner) into
+   an empty directory **outside** the workspace. It fails if any `@livekit/*` or other vendor
+   package is present. It then imports the installed package and runs the full core test suite
+   there. (`pnpm deploy --legacy` was tried and rejected: it installed the whole workspace
+   lockfile, including `@livekit/*`.)
 
 ### 11.2 Minimal acceptance test: the core against a fake runtime
 
@@ -483,16 +486,16 @@ Security and quality
 
 ## 13. Implementation plan and schedule (target: demo-ready by 10 Nov)
 
-| Dates   | Step                                                                                                                                                               | Exit check                                  |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| done    | M0 repo hygiene (`4662541`), M0.5 LiveKit spikes (§16)                                                                                                             |                                             |
-| 1–2 Nov | **M1 core:** workspace, wire schemas + vectors, contracts, coordinator, tool registry/executor, HTTP adapter, events, `FakeRuntime`, acceptance test, isolation CI | §11 green                                   |
-| 3 Nov   | **M2 livekit-tokens:** token minting (server-named rooms, minimal grants, `sessionRef`-only dispatch metadata)                                                     | JWT decode tests                            |
-| 4–5 Nov | **M3 runtime-livekit, backend mode:** port, providers, session context, text callback, `record:false`, log default                                                 | Unit tests + harness run                    |
-| 6 Nov   | **M5 examples:** both backends, LiveKit worker. Remove `src/` and ai-coustics                                                                                      | Backends swap by config, vectors pass       |
-| 7–8 Nov | **M6 Next.js** browser client + token route                                                                                                                        | Manual browser voice test                   |
-| 9 Nov   | **M4 agent mode:** tool bridge, preemptive opt-in flag                                                                                                             | Unit tests + speculative-tool harness check |
-| 10 Nov  | **M7 docs** + demo rehearsal (buffer)                                                                                                                              | Acceptance checklist                        |
+| Dates   | Step                                                                                                                                                                                              | Exit check                                  |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| done    | M0 repo hygiene (`4662541`), M0.5 LiveKit spikes (§16)                                                                                                                                            |                                             |
+| 1–2 Nov | **M1 core (done 31 Oct, awaiting review):** workspace, wire schemas + vectors, contracts, coordinator, tool registry/executor, HTTP adapter, events, `FakeRuntime`, acceptance test, isolation CI | §11 green                                   |
+| 3 Nov   | **M2 livekit-tokens:** token minting (server-named rooms, minimal grants, `sessionRef`-only dispatch metadata)                                                                                    | JWT decode tests                            |
+| 4–5 Nov | **M3 runtime-livekit, backend mode:** port, providers, session context, text callback, `record:false`, log default                                                                                | Unit tests + harness run                    |
+| 6 Nov   | **M5 examples:** both backends, LiveKit worker. Remove `src/` and ai-coustics                                                                                                                     | Backends swap by config, vectors pass       |
+| 7–8 Nov | **M6 Next.js** browser client + token route                                                                                                                                                       | Manual browser voice test                   |
+| 9 Nov   | **M4 agent mode:** tool bridge, preemptive opt-in flag                                                                                                                                            | Unit tests + speculative-tool harness check |
+| 10 Nov  | **M7 docs** + demo rehearsal (buffer)                                                                                                                                                             | Acceptance checklist                        |
 
 The schedule is tight. If it slips, agent mode (M4) moves after the interview. Backend-controlled
 mode in the browser plus the portability proof is the minimum demo.

@@ -1,1 +1,4 @@
 .claude/
+**/dist/
+packages/core/schema/
+pnpm-lock.yaml
