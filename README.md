@@ -21,15 +21,18 @@ criteria, and implementation plan.
 
 ## Current state
 
-| Package                        | Status                                                                                            |
-| ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `@voicebridge/core`            | Provider-neutral contracts, turn coordinator, tool executor, wire contract v0 (experimental)      |
-| `@voicebridge/livekit-tokens`  | Server-side, least-privilege LiveKit credentials with allowlisted dispatch                        |
-| `@voicebridge/runtime-livekit` | LiveKit Agents runtime adapter, backend-controlled mode (verified sessions, no LLM)               |
-| `examples/`                    | Runnable help-desk demo: backend, host token route, LiveKit worker ([README](examples/README.md)) |
+| Package                        | Status                                                                                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `@voicebridge/core`            | Provider-neutral contracts, turn coordinator, tool executor, wire contract v0 (experimental)                            |
+| `@voicebridge/livekit-tokens`  | Server-side, least-privilege LiveKit credentials with allowlisted dispatch                                              |
+| `@voicebridge/runtime-livekit` | LiveKit Agents runtime adapter, backend-controlled mode (verified sessions, no LLM)                                     |
+| `examples/`                    | Runnable help-desk demo: backend, host token route, LiveKit worker, Next.js browser page ([README](examples/README.md)) |
 
-Not yet built: browser client (next), agent-controlled mode (LLM plus tools), task-list example.
-Nothing is published or production-ready.
+Not yet built: agent-controlled mode (LLM plus tools), task-list example. Nothing is published or
+production-ready: the demo uses a development-only identity and in-memory session storage.
+
+To try the voice demo in a browser (four local processes plus a LiveKit Cloud project), follow
+the [examples quickstart](examples/README.md#quickstart-local-development).
 
 ## Development setup
 

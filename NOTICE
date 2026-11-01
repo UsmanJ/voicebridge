@@ -63,3 +63,8 @@ that contains them must comply with their terms:
   licence.
 
 - @livekit/av-* platform binaries: LGPL-2.1-or-later (FFmpeg).
+
+- sharp / @img/sharp-* platform binaries (optional dependency of next and
+  transitive dependency of @livekit/agents): "Apache-2.0 AND
+  LGPL-3.0-or-later" (bundled libvips). The browser example does not use
+  Next.js image optimisation.

@@ -9,10 +9,10 @@
   "scripts": {
     "build": "pnpm -r --if-present run build",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "lint": "eslint \"**/*.{ts,js}\"",
-    "lint:fix": "eslint --fix \"**/*.{ts,js}\"",
-    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+    "lint": "eslint \"**/*.{ts,tsx,js,mjs}\"",
+    "lint:fix": "eslint --fix \"**/*.{ts,tsx,js,mjs}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md,css}\"",
     "test": "pnpm -r --if-present run test",
     "verify:core-isolation": "node scripts/verify-core-isolation.mjs"
   },
@@ -25,6 +25,7 @@
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^24.13.5",
     "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^16.5.0",
     "jiti": "^2.7.0",
     "typescript": "^5.9.3",
