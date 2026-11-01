@@ -1,6 +1,6 @@
 {
   "name": "@voicebridge/livekit-tokens",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.1",
   "description": "Server-side LiveKit participant credentials for VoiceBridge: least-privilege, room-scoped, short-lived tokens with allowlisted agent dispatch. No agents runtime, no frontend code.",
   "license": "Apache-2.0",
   "private": true,

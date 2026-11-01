@@ -1,6 +1,6 @@
 {
   "name": "voicebridge",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.1",
   "description": "Provider-neutral voice AI integration middleware. LiveKit Agents is the first runtime (pre-alpha).",
   "license": "Apache-2.0",
   "private": true,

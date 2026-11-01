@@ -126,7 +126,7 @@ authentication.
 
 ### Manual browser checklist
 
-Run this with a real microphone (the automated tests use mocks; see [Verification](#verification-m5)):
+Run this with a real microphone (the automated tests use mocks; see [Verification](#verification)):
 
 1. Open http://localhost:3000. The status reads **Disconnected**, and the host log shows no
    `token_issued`.
@@ -196,10 +196,28 @@ Instant termination would need additional work, none of it implemented:
 - `VB_DEV_AUTH` is anything other than `localhost`
 - `NODE_ENV=production`
 - the host binds to a non-loopback address
+- a hosting-platform environment variable is set (`KUBERNETES_SERVICE_HOST`, `K_SERVICE`,
+  `AWS_EXECUTION_ENV`, `FLY_APP_NAME`, `DYNO`, and others; see `HOSTING_ENV_MARKERS` in
+  `host-token-route/src/auth.ts`)
+- `HOST_ALLOWED_ORIGINS` contains anything other than `http://localhost`, `http://127.0.0.1`, or
+  `http://[::1]` origins
 
-Per request, it also requires a loopback client **and** a `localhost` `Host` header, which blocks
-DNS-rebinding attacks from web pages. Without `VB_DEV_AUTH` and without your own authenticator,
-the host refuses to start: there's no unauthenticated mode.
+Per request, it requires a loopback client **and** a `localhost` `Host` header, which blocks
+DNS-rebinding attacks from web pages. It also refuses any request carrying a proxy forwarding
+header (`Forwarded`, `Via`, `X-Forwarded-*`, `X-Real-IP`, `CF-Connecting-IP`, and others), which
+blocks most reverse proxies, tunnels (ngrok, cloudflared), and load balancers. A refused request
+gets `401`. Without `VB_DEV_AUTH` and without your own authenticator, the host refuses to start:
+there's no unauthenticated mode. The host logs a warning at startup whenever the development
+identity is on.
+
+**What it can't detect.** A reverse proxy on the same machine that forwards to `127.0.0.1:8790`
+without adding forwarding headers (for example a bare nginx `proxy_pass http://127.0.0.1:8790;`,
+which also sends `Host: 127.0.0.1:8790`) makes remote requests look local. A container started
+with `--network host` behind such a proxy is the same. No Host, Origin, or address check can tell
+these apart from a real local request, so the guards above are defence in depth, not
+authentication. **Never run `VB_DEV_AUTH=localhost` on a machine whose port 8790 is reachable
+through a proxy, tunnel, or port mapping.** Anything network-reachable needs a real
+`Authenticator`.
 
 ## Configuration
 
@@ -237,8 +255,16 @@ The worker always runs with **recording disabled**, **no LLM**, and `--log-level
 
 - Speech audio goes to LiveKit Cloud, and LiveKit Inference forwards it to the configured speech
   providers (STT and TTS). Review those providers' data handling before using real conversations.
-- VoiceBridge passes `record: false`: no LiveKit recording, transcript, or trace upload. The
-  help-desk backend keeps only session metadata, in memory.
+- LiveKit [documents](https://docs.livekit.io/agents/models/inference/) Inference as zero data
+  retention: neither LiveKit nor the model providers store or train on the audio and text. That
+  covers model calls through LiveKit Inference only. It doesn't cover Agent Observability (below),
+  custom voice clones, or provider plugins that call a provider directly.
+- **Agent Observability is separate.** It's LiveKit Cloud's optional upload of session audio,
+  transcripts, traces, and logs for its dashboard. VoiceBridge passes `record: false` to
+  `session.start`, so this worker uploads none of them. Check the project's settings in the
+  LiveKit Cloud dashboard too.
+- The help-desk backend keeps only session metadata (no utterances), in memory. Service logs
+  contain event names and outcomes, never utterance text, session refs, tokens, or credentials.
 - The page keeps the transcript in React state only (no localStorage, analytics, or logging) and
   discards it when the conversation ends. When there are connection problems, the browser console
   (LiveKit SDK at `warn`) may show the random room name and participant identity, but never tokens
@@ -250,7 +276,7 @@ This demo is not production-ready. Before real use it needs at least real user a
 place of the development identity, durable session storage, HTTPS everywhere, shared rate
 limiting, a secrets manager, and a review of the speech providers' data handling.
 
-## Verification (M5)
+## Verification
 
 Automated, without LiveKit Cloud:
 
@@ -266,6 +292,11 @@ revoke. The test machine has no microphone, so that run injected synthetic speec
 microphone. **A run with a real microphone and the browser's permission prompt is still to be
 done** (see the checklist above).
 
+Release audit (M5.5), from a fresh clone of the release commit with no reused `node_modules` or
+build output: frozen-lockfile install, typecheck, lint, format check, build (with bundle scan),
+all tests, core isolation, backend startup, and the production smoke test. None of these needs
+LiveKit credentials.
+
 ## Known limitations
 
 - One application per worker. The host and worker configs must agree on application and agent name.
@@ -276,6 +307,10 @@ done** (see the checklist above).
   `useSession` fetches credentials on mount, on `end()`, and after unexpected disconnects, so the
   page fetches once itself and passes `TokenSource.literal`. `useAgent` reports `failed` during a
   full reconnect and stays `failed` afterwards, so "assistant ended" is decided from agent
-  presence and room state. The transcript stream reader rejects unhandled when a room closes
-  mid-reply; the page silences only that error.
+  presence and room state.
+- `@livekit/components-react` 2.9.24 (its bundled copy of components-core) rethrows a text stream that ends abnormally (the room
+  closes while the assistant is mid-sentence) as an uncaught global error. A narrow local patch
+  absorbs only that error and rethrows every other one. It mirrors the open upstream fix
+  [components-js#1426](https://github.com/livekit/components-js/pull/1426). See
+  [patches/README.md](../patches/README.md).
 - Clicking Start before the page has finished loading does nothing (React is not attached yet).
