@@ -1,5 +1,8 @@
 name: Tests
 
+# Runs on pushes to main and on pull requests targeting main, including pull requests from forks.
+# Uses `pull_request` (never `pull_request_target`): fork code runs with a read-only token and no
+# repository secrets. No job needs secrets, LiveKit credentials, or paid inference.
 on:
   push:
     branches: [main]
@@ -13,21 +16,26 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Third-party actions and images are pinned to immutable commit SHAs / digests (tag in the comment).
+# Dependabot (.github/dependabot.yml) proposes updates.
 jobs:
   checks:
-    name: Typecheck, lint, format, test
+    name: Typecheck, lint, format, build, test, smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # Version comes from the "packageManager" field in package.json.
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -44,26 +52,37 @@ jobs:
       - name: Check formatting
         run: pnpm run format:check
 
+      # Includes the browser bundle scan (examples/web/scripts/check-bundle.mjs).
       - name: Build packages
         run: pnpm run build
 
       - name: Run tests
         run: pnpm run test
 
+      # Starts the production Next.js server and checks security headers and the initial page.
+      - name: Browser production smoke test
+        run: pnpm --filter @voicebridge/web-example smoke
+
+      - name: Audit production dependencies (high and critical)
+        run: pnpm audit --prod --audit-level high
+
   core-isolated:
     name: Core runs without vendor packages
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # Version comes from the "packageManager" field in package.json.
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -79,15 +98,18 @@ jobs:
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code (full history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # Runs the gitleaks CLI from its official container image (no licence key or token needed).
       - name: Scan repository history with gitleaks
         run: >
-          docker run --rm -v "${{ github.workspace }}:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1
+          docker run --rm -v "${{ github.workspace }}:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
           git /repo --redact --verbose

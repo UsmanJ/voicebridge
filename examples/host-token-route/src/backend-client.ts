@@ -18,6 +18,31 @@ export class SessionApiError extends Error {
   }
 }
 
+/** Session API responses are tiny JSON objects; anything larger is refused. */
+export const MAX_SESSION_RESPONSE_BYTES = 16 * 1024;
+
+async function readCapped(res: Response, maxBytes: number): Promise<string | undefined> {
+  if (Number(res.headers.get('content-length') ?? 0) > maxBytes) {
+    await res.body?.cancel().catch(() => {});
+    return undefined;
+  }
+  if (!res.body) return '';
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return undefined;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
 export function createSessionApi(options: {
   baseUrl: string;
   hostCredential: string;
@@ -48,7 +73,8 @@ export function createSessionApi(options: {
       // No URL, credential, or cause in the message.
       throw new SessionApiError('session backend unreachable');
     }
-    const text = await res.text().catch(() => '');
+    // An oversized or unreadable body is treated as no body: callers then refuse the operation.
+    const text = (await readCapped(res, MAX_SESSION_RESPONSE_BYTES).catch(() => undefined)) ?? '';
     let json: unknown;
     try {
       json = text ? JSON.parse(text) : undefined;
