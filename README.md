@@ -84,7 +84,7 @@ The fastest path to talking to the demo. You need Node.js 24, pnpm 10, a free
 [LiveKit Cloud](https://cloud.livekit.io) project, and a desktop browser with a microphone.
 
 ```console
-git clone <this repository> voicebridge && cd voicebridge
+git clone https://github.com/UsmanJ/voicebridge.git && cd voicebridge
 pnpm install --frozen-lockfile
 pnpm build
 
