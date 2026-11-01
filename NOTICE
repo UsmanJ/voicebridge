@@ -43,9 +43,35 @@ Third-party material included in this repository
 2. LiveKit agent skills
 
    The files under .claude/skills/ are copied unmodified from
-   https://github.com/livekit/agent-skills (author: LiveKit), declared as
-   "license: MIT" in each SKILL.md. Versions are pinned in skills-lock.json.
-   The MIT License text above applies; copyright LiveKit, Inc.
+   https://github.com/livekit/agent-skills, which is licensed under the MIT
+   License (declared as "license: MIT" in each SKILL.md). Versions are pinned in
+   skills-lock.json. That repository's copyright notice is:
+
+   Copyright (c) 2026 LiveKit
+
+   and the MIT License permission notice and disclaimer reproduced in section 1
+   apply to these files.
+
+3. Local patch to @livekit/components-react (Apache-2.0)
+
+   patches/@livekit__components-react@2.9.24.patch modifies the published
+   build of @livekit/components-react 2.9.24, which bundles
+   @livekit/components-core 0.12.15 (https://github.com/livekit/components-js,
+   Copyright LiveKit, Inc., Apache License 2.0). pnpm applies it at install
+   time. The patch changes dist/room-Bfb4OWAI.mjs and dist/shared-CwqlzlSm.js
+   so that a text stream ending abnormally is not rethrown as an uncaught
+   error; each modified file carries a comment marking the change. It mirrors
+   the open upstream pull request
+   https://github.com/livekit/components-js/pull/1426 and will be removed once
+   an upstream release contains the fix. See patches/README.md.
+
+-------------------------------------------------------------------------------
+Trademarks
+-------------------------------------------------------------------------------
+
+LiveKit is a trademark of LiveKit, Inc. VoiceBridge is an independent project.
+It is not affiliated with, endorsed by, or sponsored by LiveKit, Inc. or any
+speech or model provider named in this repository.
 
 -------------------------------------------------------------------------------
 Notable licences of runtime dependencies (not included in this repository)

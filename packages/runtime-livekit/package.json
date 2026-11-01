@@ -1,6 +1,6 @@
 {
   "name": "@voicebridge/runtime-livekit",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.1",
   "description": "VoiceBridge runtime adapter for LiveKit Agents (Node.js). Backend-controlled mode: verified sessions, STT and TTS, backend-approved replies spoken verbatim. No LLM.",
   "license": "Apache-2.0",
   "private": true,
