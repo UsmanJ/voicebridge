@@ -3,6 +3,14 @@
 > **DEMO ONLY.** Synthetic data, in-memory storage, and a development-only identity. Read
 > [Demo vs production](#demo-vs-production) before adapting any of this.
 
+> [!WARNING]
+> **Development identity: local machine only.** `VB_DEV_AUTH=localhost` treats every local
+> request as one synthetic user. A reverse proxy on the same machine that adds no forwarding
+> headers (for example a bare nginx `proxy_pass http://127.0.0.1:8790`) makes internet requests
+> look local, and no Host, Origin, or address check can tell the difference. Never expose the host
+> token route through a proxy, tunnel, or container port mapping. Details:
+> [Development identity](#development-identity).
+
 Four small processes show how an existing application adds a voice interface with VoiceBridge:
 
 | Directory            | Role                                                                                                                             | Depends on                                        |

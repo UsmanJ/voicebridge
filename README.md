@@ -72,6 +72,14 @@ Architecture, trade-offs, and the plan: [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 
 ## Quickstart: run the demo
 
+> [!WARNING]
+> **The demo's development login is for your own machine only.** With `VB_DEV_AUTH=localhost`,
+> every request that reaches the token route from this machine is treated as one synthetic user.
+> Its guards can't detect a reverse proxy on the same machine that adds no forwarding headers (for
+> example a bare nginx `proxy_pass http://127.0.0.1:8790`): such a proxy would hand LiveKit tokens
+> to anyone on the internet. Never expose port 8790 through a proxy, tunnel, or container port
+> mapping. See [Security responsibilities](#security-responsibilities).
+
 The fastest path to talking to the demo. You need Node.js 24, pnpm 10, a free
 [LiveKit Cloud](https://cloud.livekit.io) project, and a desktop browser with a microphone.
 
