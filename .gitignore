@@ -232,3 +232,6 @@ livekit.toml
 
 # Per-agent skill copies created by `lk skills install`; .claude/skills is the committed copy
 .agents/
+
+# Next.js generated type references
+next-env.d.ts

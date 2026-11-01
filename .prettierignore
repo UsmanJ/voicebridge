@@ -2,3 +2,5 @@
 **/dist/
 packages/core/schema/
 pnpm-lock.yaml
+**/.next/
+**/next-env.d.ts
