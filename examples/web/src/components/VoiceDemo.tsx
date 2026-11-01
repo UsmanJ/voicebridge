@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  DataStreamError,
-  DataStreamErrorReason,
-  type TokenSourceResponseObject,
-  setLogLevel,
-} from 'livekit-client';
+import { type TokenSourceResponseObject, setLogLevel } from 'livekit-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TOKEN_TIMEOUT_MS } from '../config';
 import type { DemoApplication } from '../demo-app';
@@ -18,17 +13,6 @@ import { StatusIndicator } from './StatusIndicator';
 // The SDK's info/debug logs are verbose. At 'warn' it still logs connection problems (with the
 // random room name and participant identity, never tokens or transcript text).
 setLogLevel('warn');
-
-/**
- * True for the one SDK-internal rejection this page silences: the transcription text-stream reader
- * rejects with "Room disconnected in the middle of receiving data" when a conversation ends while
- * the agent is mid-sentence, and nothing in the SDK handles it (observed with
- * @livekit/components-react 2.9.24 / livekit-client 2.23.0). The partial text is discarded with
- * the conversation anyway.
- */
-export function isAbandonedTranscriptStream(reason: unknown): boolean {
-  return reason instanceof DataStreamError && reason.reason === DataStreamErrorReason.AbnormalEnd;
-}
 
 type Phase =
   | { kind: 'idle' }
@@ -61,14 +45,6 @@ export function VoiceDemo({
     },
     [],
   );
-
-  useEffect(() => {
-    const onRejection = (event: PromiseRejectionEvent) => {
-      if (isAbandonedTranscriptStream(event.reason)) event.preventDefault();
-    };
-    window.addEventListener('unhandledrejection', onRejection);
-    return () => window.removeEventListener('unhandledrejection', onRejection);
-  }, []);
 
   const start = useCallback(async () => {
     // Synchronous guard: two clicks in the same frame both see phase 'idle'.

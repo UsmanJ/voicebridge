@@ -3,8 +3,17 @@ import { createLiveKitTokenIssuer, parseDispatchMetadata } from '@voicebridge/li
 import { createServer, request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
-import { type Authenticator, DEV_SUBJECT, createDevAuthenticator } from '../src/auth.ts';
-import { createSessionApi } from '../src/backend-client.ts';
+import {
+  type Authenticator,
+  DEV_SUBJECT,
+  FORWARDING_HEADERS,
+  createDevAuthenticator,
+} from '../src/auth.ts';
+import {
+  MAX_SESSION_RESPONSE_BYTES,
+  SessionApiError,
+  createSessionApi,
+} from '../src/backend-client.ts';
 import { loadHostConfig } from '../src/config.ts';
 import { TOKEN_PATH, createHostApp } from '../src/host.ts';
 import { createRateLimiter } from '../src/rate-limit.ts';
@@ -186,6 +195,39 @@ describe('authentication boundary', () => {
     expect(status).toBe(401);
   });
 
+  it.each(FORWARDING_HEADERS.map((name) => [name]))(
+    'development identity refuses requests that came through a proxy or tunnel (%s)',
+    async (name) => {
+      const h = await setup();
+      const res = await h.post(
+        {},
+        { [name]: name === 'forwarded' ? 'for=203.0.113.7' : '203.0.113.7' },
+      );
+      expect(res.status).toBe(401);
+      expect(h.logs.some((l) => l.includes('token_issued'))).toBe(false);
+    },
+  );
+
+  it('development identity still serves a plain local request', async () => {
+    const h = await setup();
+    expect((await h.post()).status).toBe(200);
+  });
+
+  it.each([
+    ['Kubernetes', 'KUBERNETES_SERVICE_HOST'],
+    ['Cloud Run', 'K_SERVICE'],
+    ['AWS', 'AWS_EXECUTION_ENV'],
+  ])('development identity refuses to start on a hosting platform (%s)', (_name, marker) => {
+    expect(() =>
+      createDevAuthenticator({
+        mode: 'localhost',
+        nodeEnv: 'development',
+        bindHost: '127.0.0.1',
+        env: { [marker]: 'x' },
+      }),
+    ).toThrow(/hosting platform/);
+  });
+
   it.each([
     ['not enabled', { mode: undefined, nodeEnv: 'development', bindHost: '127.0.0.1' }],
     ['wrong value', { mode: 'true', nodeEnv: 'development', bindHost: '127.0.0.1' }],
@@ -213,6 +255,56 @@ describe('authentication boundary', () => {
     expect(loadHostConfig({ ...env, VB_DEV_AUTH: 'localhost' }).app.applicationId).toBe(
       'help-desk',
     );
+    expect(() =>
+      loadHostConfig({ ...env, VB_DEV_AUTH: 'localhost', KUBERNETES_SERVICE_HOST: '10.0.0.1' }),
+    ).toThrow(/hosting platform/);
+  });
+
+  it('the development identity only pairs with local browser origins', () => {
+    const env = {
+      HELP_DESK_URL: 'http://127.0.0.1:1',
+      HELP_DESK_HOST_CREDENTIAL: APP.hostCredential,
+      LIVEKIT_URL: LK.serverUrl,
+      LIVEKIT_API_KEY: LK.apiKey,
+      LIVEKIT_API_SECRET: LK.apiSecret,
+      VB_DEV_AUTH: 'localhost',
+    };
+    for (const origin of ['https://app.example.com', 'http://localhost.example.com', '*', 'null']) {
+      expect(() => loadHostConfig({ ...env, HOST_ALLOWED_ORIGINS: origin })).toThrow(/origins/);
+    }
+    expect(
+      loadHostConfig({
+        ...env,
+        HOST_ALLOWED_ORIGINS: 'http://localhost:3000, http://127.0.0.1:3000',
+      }).app.allowedOrigins,
+    ).toEqual(['http://localhost:3000', 'http://127.0.0.1:3000']);
+    // A real authenticator may serve a public origin.
+    const real: Authenticator = async () => null;
+    const withoutDev = { ...env, VB_DEV_AUTH: undefined };
+    expect(
+      loadHostConfig({ ...withoutDev, HOST_ALLOWED_ORIGINS: 'https://app.example.com' }, real).app
+        .allowedOrigins,
+    ).toEqual(['https://app.example.com']);
+  });
+});
+
+describe('session API client', () => {
+  it('refuses oversized backend responses instead of buffering them', async () => {
+    const big = JSON.stringify({ sessionRef: 'x'.repeat(MAX_SESSION_RESPONSE_BYTES) });
+    for (const withLength of [true, false]) {
+      const sessions = createSessionApi({
+        baseUrl: 'http://127.0.0.1:1',
+        hostCredential: APP.hostCredential,
+        fetch: async () =>
+          new Response(
+            withLength ? big : new Blob([big]).stream(),
+            withLength
+              ? { status: 201, headers: { 'content-length': String(big.length) } }
+              : { status: 201 },
+          ),
+      });
+      await expect(sessions.create('user-1')).rejects.toThrow(SessionApiError);
+    }
   });
 });
 

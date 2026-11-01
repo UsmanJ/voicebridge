@@ -7,3 +7,8 @@ onlyBuiltDependencies:
   - '@livekit/local-inference'
   - protobufjs
   - sharp
+
+# Local patches to third-party packages. Each one must name the upstream issue or pull request it
+# works around and be removed once a release containing the fix is installed. See patches/README.md.
+patchedDependencies:
+  '@livekit/components-react@2.9.24': patches/@livekit__components-react@2.9.24.patch

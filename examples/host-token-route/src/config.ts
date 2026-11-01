@@ -12,6 +12,19 @@ export interface HostConfig {
 
 type Env = Readonly<Record<string, string | undefined>>;
 
+function isLoopbackOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    return (
+      url.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) &&
+      url.origin === origin
+    );
+  } catch {
+    return false;
+  }
+}
+
 function required(env: Env, name: string): string {
   const v = env[name];
   if (!v) throw new Error(`missing environment variable ${name}`);
@@ -38,8 +51,27 @@ export function loadHostConfig(env: Env, authenticate?: Authenticator): HostConf
           'no authenticator configured: wire your own, or set VB_DEV_AUTH=localhost for local development',
         );
       }
-      return createDevAuthenticator({ mode: env.VB_DEV_AUTH, nodeEnv: env.NODE_ENV, bindHost });
+      return createDevAuthenticator({
+        mode: env.VB_DEV_AUTH,
+        nodeEnv: env.NODE_ENV,
+        bindHost,
+        env,
+      });
     })();
+
+  const allowedOrigins = (env.HOST_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  // The development identity serves local pages only: refuse to pair it with a public origin.
+  if (!authenticate) {
+    const nonLocal = allowedOrigins.find((o) => !isLoopbackOrigin(o));
+    if (nonLocal !== undefined) {
+      throw new Error(
+        'development authentication allows only http://localhost or http://127.0.0.1 origins in HOST_ALLOWED_ORIGINS',
+      );
+    }
+  }
 
   const sessions = createSessionApi({
     baseUrl: required(env, 'HELP_DESK_URL'),
@@ -61,10 +93,7 @@ export function loadHostConfig(env: Env, authenticate?: Authenticator): HostConf
       issuer,
       sessions,
       applicationId,
-      allowedOrigins: (env.HOST_ALLOWED_ORIGINS ?? '')
-        .split(',')
-        .map((o) => o.trim())
-        .filter(Boolean),
+      allowedOrigins,
       limits: {
         perClient: createRateLimiter({
           limit: Number(env.HOST_RATE_PER_CLIENT ?? 20),

@@ -1,6 +1,4 @@
-import { DataStreamError, DataStreamErrorReason } from 'livekit-client';
 import { describe, expect, it } from 'vitest';
-import { isAbandonedTranscriptStream } from '../src/components/VoiceDemo';
 import { DEFAULT_TOKEN_ENDPOINT, resolveTokenEndpoint } from '../src/config';
 import { toUserFacingError } from '../src/errors';
 import { deriveStatus } from '../src/status';
@@ -125,19 +123,5 @@ describe('toUserFacingError', () => {
     const unknown = toUserFacingError(new Error('ECONNREFUSED 10.1.2.3 secret=abc'));
     expect(unknown.code).toBe('unknown');
     expect(unknown.message).not.toMatch(/10\.1\.2\.3|secret/);
-  });
-});
-
-describe('isAbandonedTranscriptStream', () => {
-  it('matches only the SDK abnormal-end data stream error', () => {
-    expect(
-      isAbandonedTranscriptStream(
-        new DataStreamError('Room disconnected', DataStreamErrorReason.AbnormalEnd),
-      ),
-    ).toBe(true);
-    expect(
-      isAbandonedTranscriptStream(new DataStreamError('x', DataStreamErrorReason.DecodeFailed)),
-    ).toBe(false);
-    expect(isAbandonedTranscriptStream(new Error('Room disconnected'))).toBe(false);
   });
 });

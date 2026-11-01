@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@livekit/components-react@2.9.24':
+    hash: 9c159e86d22f92ccf4707a4c3bc897ee8aa5eb778cbacd9f1d422ccc92d5dbd3
+    path: patches/@livekit__components-react@2.9.24.patch
+
 importers:
 
   .:
@@ -21,7 +26,7 @@ importers:
         specifier: ^9.39.5
         version: 9.39.5(jiti@2.7.0)
       eslint-plugin-react-hooks:
-        specifier: 7.1.1
+        specifier: ^7.1.1
         version: 7.1.1(eslint@9.39.5(jiti@2.7.0))
       globals:
         specifier: ^16.5.0
@@ -81,7 +86,7 @@ importers:
     dependencies:
       '@livekit/components-react':
         specifier: 2.9.24
-        version: 2.9.24(livekit-client@2.23.0(@types/dom-mediacapture-record@1.0.22))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.9.1)
+        version: 2.9.24(patch_hash=9c159e86d22f92ccf4707a4c3bc897ee8aa5eb778cbacd9f1d422ccc92d5dbd3)(livekit-client@2.23.0(@types/dom-mediacapture-record@1.0.22))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.9.1)
       livekit-client:
         specifier: 2.23.0
         version: 2.23.0(@types/dom-mediacapture-record@1.0.22)
@@ -3027,7 +3032,7 @@ snapshots:
       rxjs: 7.8.2
       tslib: 2.9.1
 
-  '@livekit/components-react@2.9.24(livekit-client@2.23.0(@types/dom-mediacapture-record@1.0.22))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.9.1)':
+  '@livekit/components-react@2.9.24(patch_hash=9c159e86d22f92ccf4707a4c3bc897ee8aa5eb778cbacd9f1d422ccc92d5dbd3)(livekit-client@2.23.0(@types/dom-mediacapture-record@1.0.22))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.9.1)':
     dependencies:
       '@livekit/components-core': 0.12.15(livekit-client@2.23.0(@types/dom-mediacapture-record@1.0.22))(tslib@2.9.1)
       clsx: 2.1.1
