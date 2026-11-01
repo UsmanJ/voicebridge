@@ -47,3 +47,4 @@ First public alpha. **Not production-ready.** Nothing is published to npm. See t
   [patches/README.md](patches/README.md).
 - The lockfile is back in sync with `package.json` (`eslint-plugin-react-hooks` specifier), so
   `pnpm install --frozen-lockfile` succeeds.
+- `prettier` is now a declared root devDependency, so `pnpm format:check` works on a fresh checkout.
