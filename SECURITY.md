@@ -11,8 +11,11 @@ Report vulnerabilities through GitHub's private vulnerability reporting: **Secur
 vulnerability** on the repository page. Include the affected commit or version, reproduction
 steps, and the impact you expect.
 
-This is a volunteer project with one maintainer. You can expect an acknowledgement within a week.
-Fixes land on `main`. There are no backports while the project is in alpha.
+This is a volunteer project with one maintainer, so handling is best effort: there's no guaranteed
+response time. Reports are read and triaged as soon as the maintainer is able, and a confirmed
+issue is fixed on `main` and credited (if you wish) once it's resolved. There are no backports
+while the project is in alpha. If you haven't heard back after a reasonable time, a short
+follow-up on the same private report is welcome.
 
 ## Supported versions
 
