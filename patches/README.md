@@ -29,8 +29,12 @@ when you click End Conversation while the assistant is speaking.
 
 **Patch.** At those two call sites the reader passed to `from(...)` is wrapped by
 `vbAbsorbAbnormalStreamEnd`. When the underlying reader fails with `DataStreamError` and reason
-`AbnormalEnd`, the wrapper ends iteration normally, so the text already received is kept. Every
-other error is rethrown unchanged and still surfaces exactly as before. Attachment byte streams
+`AbnormalEnd`, the wrapper ends iteration normally, so the text already received is kept. It does
+the same for reason `Incomplete` (livekit-client 2.22.2+ throws it when a stream ends with missing
+chunks, a gap in chunk indexes or fewer bytes than declared, which can happen around reconnects),
+and logs a `console.warn` for it because text may be missing. Every other error (for example
+`DecodeFailed`, `LengthExceeded`, or a plain `Error`) is rethrown unchanged and still surfaces
+exactly as before. Attachment byte streams
 aren't touched (the demo doesn't use them).
 
 **Removing it.** When Dependabot or a manual upgrade moves `@livekit/components-react` past

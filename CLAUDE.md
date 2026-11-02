@@ -30,8 +30,8 @@ TypeScript (strict), Node.js 24 LTS, pnpm workspaces, `@livekit/agents`, Zod, Vi
   backend writes.
 - No application-specific prompts, personas, or domain logic in any package. They belong in
   `examples/` or in the user's app.
-- Two modes: backend-controlled (backend text is spoken verbatim, no LLM configured) and
-  agent-controlled (LLM calls explicitly registered tools only).
+- Two modes: backend-controlled (backend text is spoken verbatim, no LLM configured; implemented)
+  and agent-controlled (LLM calls explicitly registered tools only; planned, not wired to a runtime).
 - Provider and model choices live in worker config, never in adapters.
 - Stateless by default. No databases, queues, caches, or new infrastructure without an explicit,
   documented reason agreed with the maintainer.
@@ -82,7 +82,6 @@ TypeScript (strict), Node.js 24 LTS, pnpm workspaces, `@livekit/agents`, Zod, Vi
 - Public APIs need TSDoc and Vitest tests. Bug fixes start with a failing test.
 - Before calling a change done: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`.
 - When agent-controlled mode lands, agent behaviour changes (instructions, tool descriptions) also
-  need a LiveKit simulation scenario (see AGENTS.md). The starter's `scenarios.yaml` was removed in
-  M4 along with the starter agent.
+  need a LiveKit simulation scenario (see AGENTS.md). There are no scenarios yet.
 - Document trade-offs and limitations honestly. Never claim production readiness without evidence.
 - Keep `docs/ARCHITECTURE.md` current when a decision changes or a spike resolves.

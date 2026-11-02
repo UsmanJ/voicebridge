@@ -1,6 +1,6 @@
 # @voicebridge/core
 
-> **Pre-alpha, not published.** The wire contract is **v0 (experimental)**. The runtime port is
+> **Experimental alpha, not published.** The wire contract is **v0 (experimental)**. The runtime port is
 > **0.x (unstable)**. Expect breaking changes.
 
 The provider-neutral core of VoiceBridge. Its only package dependency is [`zod`](https://zod.dev)

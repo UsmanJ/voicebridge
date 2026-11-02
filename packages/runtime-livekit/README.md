@@ -1,6 +1,6 @@
 # @voicebridge/runtime-livekit
 
-> **Pre-alpha, not published.** Implements **backend-controlled mode only**. Agent-controlled mode
+> **Experimental alpha, not published.** Implements **backend-controlled mode only**. Agent-controlled mode
 > (LLM plus tools) is a later milestone.
 
 The VoiceBridge runtime adapter for [LiveKit Agents for Node.js](https://github.com/livekit/agents-js).

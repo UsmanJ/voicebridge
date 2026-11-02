@@ -117,6 +117,43 @@ describe('patched @livekit/components-react text streams', () => {
     expect(uncaught).toEqual(expect.arrayContaining([decodeFailure, plain]));
   });
 
+  it('a transcription that ends incomplete keeps its text, warns, and throws nothing globally', async () => {
+    // livekit-client 2.22.2+ throws Incomplete when a stream ends with missing chunks (a gap in
+    // chunk indexes, or fewer bytes than declared), which can happen around reconnects.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const room = new FakeRoom();
+    const { result } = renderHook(() =>
+      useTextStream('lk.transcription', { room: room as unknown as Room }),
+    );
+    const incomplete = new DataStreamError(
+      'Missing chunk(s) 2..3 for data stream s4 - cannot reassemble payload',
+      DataStreamErrorReason.Incomplete,
+    );
+    await deliver(
+      room,
+      'lk.transcription',
+      failingReader('s4', ['Returns are ', 'accepted'], incomplete),
+    );
+    await settle();
+
+    expect(uncaught).toEqual([]);
+    expect(result.current.textStreams.map((s) => s.text)).toEqual(['Returns are accepted']);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('text stream ended incomplete'));
+  });
+
+  it('a chat stream that ends incomplete throws nothing globally', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const room = new FakeRoom();
+    const options = { room: room as unknown as Room };
+    const { result } = renderHook(() => useChat(options));
+    const incomplete = new DataStreamError('Not enough chunk(s)', DataStreamErrorReason.Incomplete);
+    await deliver(room, 'lk.chat', failingReader('c3', ['partial'], incomplete));
+    await settle();
+
+    expect(uncaught).toEqual([]);
+    expect(result.current.chatMessages.map((m) => m.message)).toContain('partial');
+  });
+
   it('a chat stream that ends abnormally throws nothing globally; other errors still surface', async () => {
     const room = new FakeRoom();
     // Stable options: useChat sets up its pipeline again whenever the options object changes.

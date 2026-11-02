@@ -338,7 +338,8 @@ LiveKit credentials.
   presence and room state.
 - `@livekit/components-react` 2.9.24 (its bundled copy of components-core) rethrows a text stream that ends abnormally (the room
   closes while the assistant is mid-sentence) as an uncaught global error. A narrow local patch
-  absorbs only that error and rethrows every other one. It mirrors the open upstream fix
+  absorbs only that error (and `Incomplete`, a stream that ended with missing chunks, with a
+  console warning) and rethrows every other one. It mirrors the open upstream fix
   [components-js#1426](https://github.com/livekit/components-js/pull/1426). See
   [patches/README.md](../patches/README.md).
 - Clicking Start before the page has finished loading does nothing (React is not attached yet).

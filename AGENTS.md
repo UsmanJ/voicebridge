@@ -5,7 +5,7 @@
 > making changes. Where this file and CLAUDE.md disagree, CLAUDE.md wins. The LiveKit guidance below
 > is adapted from LiveKit's agent starter (MIT, see NOTICE).
 
-This is a LiveKit Agents project. LiveKit Agents is a Node.js SDK for building voice AI agents. This starter is designed to run in LiveKit Cloud. See @README.md for more about the rest of the LiveKit ecosystem.
+VoiceBridge's LiveKit runtime adapter (`packages/runtime-livekit`) and example worker (`examples/worker-livekit`) use LiveKit Agents, a Node.js SDK for building voice AI agents. The example worker uses LiveKit Cloud (LiveKit Inference). See @README.md for the project overview.
 
 ## Tooling
 
@@ -45,11 +45,11 @@ Voice AI agents are highly sensitive to latency. Design complex agents in a stru
 
 ## Testing
 
-> VoiceBridge note: the starter's `scenarios.yaml` and simulations workflow were removed with the
-> starter agent (M4). Backend-controlled mode has no LLM to simulate. Scenarios return with
-> agent-controlled mode.
+> VoiceBridge note: there are no simulation scenarios and no simulations workflow yet.
+> Backend-controlled mode, the only mode implemented, has no LLM to simulate. Scenarios arrive with
+> agent-controlled mode (planned).
 
-To keep agent behavior from regressing, add a scenario to `scenarios.yaml` and run it with `lk agent simulate text --scenarios scenarios.yaml`. In this repository, simulations spend paid inference, so the `Simulations` workflow is manual-only (`workflow_dispatch`). Never make it run automatically. Read the [simulations documentation](https://docs.livekit.io/testing/simulations/) before editing them.
+Once agent-controlled mode exists, keep agent behavior from regressing by adding scenarios and running them with `lk agent simulate`. Simulations spend paid inference, so any simulations workflow must be manual-only (`workflow_dispatch`), never automatic. Read the [simulations documentation](https://docs.livekit.io/testing/simulations/) first.
 
 Important: when you modify core agent behavior such as instructions, tool descriptions, or tasks, workflows, and handoffs, never guess at what works. Start by writing a scenario for the desired behavior. For example, if you're adding a tool, write a scenario that exercises it, then iterate on the tool until the scenario passes. This is how you produce a working, reliable agent.
 
@@ -61,7 +61,7 @@ To investigate unexpected agent behavior:
 
 - Reproduce it with `lk agent debugger`: send the turns that trigger the problem and read the tool calls and errors in each one. Add `--logs` to `say` to see log lines, including tracebacks, next to the turn that produced them.
 - Add a simulation scenario once it's fixed, so a later change can't bring it back unnoticed.
-- Run `lk agent dev --log-level DEBUG` for verbose logs from a local agent connected to LiveKit Cloud.
+- Run the example worker with `pnpm --filter @voicebridge/worker-livekit-example dev`. Raising the SDK log level above the default `error` writes user transcripts to local logs (see `docs/ARCHITECTURE.md` §14 #23), so use synthetic data only.
 - Run `lk agent logs` to stream logs from a deployed agent.
 - Ask the developer to open the [Agent Console](https://docs.livekit.io/testing/agent-console/) for speech problems such as turn-taking, interruptions, or transcription, which the text-only debugger can't show. It shows events, tool calls, and model timing for a live session.
 - Check [Agent Observability](https://docs.livekit.io/testing/observability/) for transcripts, traces, logs, and recordings of sessions with real users.

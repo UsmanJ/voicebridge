@@ -6,9 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
-## 0.1.0-alpha.1 - unreleased (release candidate)
+## 0.1.0-alpha.1 - 2026-11-02
 
-First public alpha. **Not production-ready.** Nothing is published to npm. See the
+First public, experimental alpha. **Not production-ready.** Nothing is published to npm. See the
 [release notes](docs/releases/v0.1.0-alpha.1.md).
 
 ### Added
@@ -45,6 +45,11 @@ First public alpha. **Not production-ready.** Nothing is published to npm. See t
 
 ### Fixed
 
+- The local `@livekit/components-react` patch also absorbs `DataStreamErrorReason.Incomplete`
+  (a text stream that ended with missing chunks, which livekit-client 2.22.2+ can raise around
+  reconnects) instead of letting RxJS rethrow it as an uncaught error. It keeps the text received
+  and logs a console warning. Other stream errors still surface. Regression tests cover
+  transcription and chat streams.
 - Documentation now matches the implementation: architecture status, packages and examples,
   exported signatures, events and error codes, interruption responsibility, which security
   guarantees belong to the packages versus your backend, privacy and logging statements, and test

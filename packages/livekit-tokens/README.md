@@ -1,6 +1,6 @@
 # @voicebridge/livekit-tokens
 
-> **Pre-alpha, not published.** Server-side only. Never bundle this package into a browser.
+> **Experimental alpha, not published.** Server-side only. Never bundle this package into a browser.
 
 Mints LiveKit participant credentials for VoiceBridge voice sessions:
 

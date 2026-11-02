@@ -249,11 +249,15 @@ coding agents.
 - The browser demo is verified with mocked tests, a synthetic-microphone run on LiveKit Cloud, and
   a manual real-microphone run (2026-11-01). **Network interruption
   and reconnection haven't been tested with a real drop yet**
-  ([checklist](docs/releases/v0.1.0-alpha.1-manual-checklist.md)).
+  ([checklist](docs/releases/v0.1.0-alpha.1-manual-checklist.md)). Microphone-permission denial,
+  the autoplay fallback, and the microphone indicator turning off after ending are covered by
+  mocked tests only and haven't been checked manually yet.
 - End-to-end latency hasn't been measured. Replies aren't streamed: the backend's whole reply is
   synthesized after it arrives.
 - `@livekit/components-react` 2.9.24 carries a small local patch for an upstream bug
-  ([patches/README.md](patches/README.md)).
+  ([patches/README.md](patches/README.md)). When a transcript stream is cut off (room closed or
+  chunks lost around a reconnect), the page keeps the text received so far without marking it as
+  incomplete.
 - More detail: [CHANGELOG.md](CHANGELOG.md) and
   [examples/README.md](examples/README.md#known-limitations).
 
