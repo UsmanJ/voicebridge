@@ -231,18 +231,21 @@ through a proxy, tunnel, or port mapping.** Anything network-reachable needs a r
 
 `examples/.env.example` lists every variable:
 
-| Variable                                                            | Used by                                                | Notes                                                        |
-| ------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
-| `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`              | host, worker                                           | Root `.env.local`. Server-side only.                         |
-| `HELP_DESK_WORKER_CREDENTIAL`, `HELP_DESK_HOST_CREDENTIAL`          | backend (both), worker (worker cred), host (host cred) | At least 32 characters, distinct.                            |
-| `HELP_DESK_URL`                                                     | host, worker                                           | `https`, or `http` only for localhost.                       |
-| `VB_APPLICATION_ID`, `VB_AGENT_NAME`, `VB_TEXT_INPUT`               | all                                                    | Must agree across host and worker.                           |
-| `VB_DEV_AUTH`, `HOST_ALLOWED_ORIGINS`, `HOST_RATE_PER_*`            | host                                                   | Dev identity; exact-match CORS origins; per-minute limits.   |
-| `VB_STT_MODEL`, `VB_TTS_MODEL`, `VB_TTS_VOICE`, `VB_TURN_DETECTION` | worker                                                 | LiveKit Inference ids. `VB_TURN_DETECTION=stt` disables VAD. |
-| `VB_HEALTH_HOST`, `VB_HEALTH_PORT`                                  | worker                                                 | SDK health server. Defaults `127.0.0.1:8081`.                |
-| `NEXT_PUBLIC_VB_TOKEN_ENDPOINT`, `VB_WEB_EXTRA_CONNECT_SRC`         | web (optional `examples/web/.env.local`)               | Public build-time values. Never secrets.                     |
+| Variable                                                            | Used by                                                | Notes                                                                          |
+| ------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`              | host, worker                                           | Root `.env.local`. Server-side only.                                           |
+| `HELP_DESK_WORKER_CREDENTIAL`, `HELP_DESK_HOST_CREDENTIAL`          | backend (both), worker (worker cred), host (host cred) | At least 32 characters, distinct.                                              |
+| `HELP_DESK_URL`                                                     | host, worker                                           | `https`, or `http` only for localhost.                                         |
+| `VB_APPLICATION_ID`, `VB_AGENT_NAME`, `VB_TEXT_INPUT`               | all                                                    | Must agree across host and worker.                                             |
+| `VB_DEV_AUTH`, `HOST_ALLOWED_ORIGINS`, `HOST_RATE_PER_*`            | host                                                   | Dev identity; exact-match CORS origins; per-minute limits.                     |
+| `VB_STT_MODEL`, `VB_TTS_MODEL`, `VB_TTS_VOICE`, `VB_TURN_DETECTION` | worker                                                 | LiveKit Inference ids. `VB_TURN_DETECTION=stt` disables VAD.                   |
+| `VB_HEALTH_HOST`, `VB_HEALTH_PORT`                                  | worker                                                 | SDK health server. Defaults `127.0.0.1:8081`.                                  |
+| `LOG_LEVEL`                                                         | worker                                                 | LiveKit SDK log level. Default `error`. Lower levels can log user transcripts. |
+| `NEXT_PUBLIC_VB_TOKEN_ENDPOINT`, `VB_WEB_EXTRA_CONNECT_SRC`         | web (optional `examples/web/.env.local`)               | Public build-time values. Never secrets.                                       |
 
-The worker always runs with **recording disabled**, **no LLM**, and `--log-level warn`.
+The worker always runs with **recording disabled** and **no LLM**, and runs the LiveKit SDK at
+**`LOG_LEVEL=error`** unless you override it: at `warn` and below, `@livekit/agents` 1.9.5 can write
+user transcripts to the local log (see Privacy). Its startup line reports the level in use.
 
 ## Demo vs production
 
@@ -255,7 +258,7 @@ The worker always runs with **recording disabled**, **no LLM**, and `--log-level
 | Transport        | `http://127.0.0.1` between services       | TLS everywhere (the core refuses `http` except localhost), private networking.                                  |
 | Credentials      | `.env.local` files                        | A secrets manager, rotation, distinct credentials per environment.                                              |
 | Revocation       | Effective at the next turn                | Add participant removal via LiveKit's server API if you need it to be immediate.                                |
-| Worker packaging | `node src/worker.ts dev`                  | `start --log-level warn` under a process manager or container (no Dockerfile shipped yet).                      |
+| Worker packaging | `node src/worker.ts dev`                  | `start` (SDK at `LOG_LEVEL=error`) under a process manager or container (no Dockerfile shipped yet).            |
 | Providers        | LiveKit Inference (zero data retention)   | Review the data handling of any provider plugins you switch to.                                                 |
 | Browser page     | Calls the host on `127.0.0.1:8790`        | Token route behind your own login, HTTPS, CSP reviewed for your LiveKit host.                                   |
 
@@ -271,8 +274,20 @@ The worker always runs with **recording disabled**, **no LLM**, and `--log-level
   transcripts, traces, and logs for its dashboard. VoiceBridge passes `record: false` to
   `session.start`, so this worker uploads none of them. Check the project's settings in the
   LiveKit Cloud dashboard too.
-- The help-desk backend keeps only session metadata (no utterances), in memory. Service logs
-  contain event names and outcomes, never utterance text, session refs, tokens, or credentials.
+- The help-desk backend keeps only session metadata (no utterances), in memory. Backend, host, and
+  VoiceBridge worker logs contain event names and outcomes, never utterance text, session refs,
+  tokens, or credentials.
+- **The LiveKit SDK's own worker logs are different.** In `@livekit/agents` 1.9.5 they contain user
+  transcripts at DEBUG and in some WARN statements (for example "skipping user input, speech
+  scheduling is paused" when a session closes while you are mid-sentence). This was seen in a real
+  run. The SDK's PII redaction covers LiveKit Cloud telemetry only, not local output. The worker
+  therefore defaults to `LOG_LEVEL=error`, where no known 1.9.5 statement logs transcripts. If you
+  raise the level to debug something, treat the log as sensitive and delete it afterwards. `error`
+  isn't a complete PII-redaction guarantee (error records can include identifiers and provider
+  error details).
+- `record: false` stops Agent Observability uploads only. Wherever the worker runs, its stdout and
+  stderr are collected by that environment: on LiveKit Cloud agent hosting by LiveKit (`lk agent
+logs`, log drains), on your own host by your log pipeline.
 - The page keeps the transcript in React state only (no localStorage, analytics, or logging) and
   discards it when the conversation ends. When there are connection problems, the browser console
   (LiveKit SDK at `warn`) may show the random room name and participant identity, but never tokens
@@ -297,8 +312,13 @@ Live, on LiveKit Cloud with all four processes, in Chrome (dev and production bu
 voice question and a follow-up, an interruption, typed questions, example-question buttons, mute
 and unmute, End Conversation, restart with a new session, page reload, goodbye, and next-turn
 revoke. The test machine has no microphone, so that run injected synthetic speech as the
-microphone. **A run with a real microphone and the browser's permission prompt is still to be
-done** (see the checklist above).
+microphone.
+
+Manual, with a real microphone (maintainer, 2026-11-01):
+permission prompt and welcome, an audible answer, interruption, End Conversation while the agent is
+speaking (no `DataStreamError`), and a fresh session afterwards all passed. **Network interruption
+and reconnection are still to be tested** with a real drop: see item 8 in
+[the release checklist](../docs/releases/v0.1.0-alpha.1-manual-checklist.md).
 
 Release audit (M5.5), from a fresh clone of the release commit with no reused `node_modules` or
 build output: frozen-lockfile install, typecheck, lint, format check, build (with bundle scan),

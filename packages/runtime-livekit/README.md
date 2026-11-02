@@ -57,9 +57,11 @@ cli.runApp(
 );
 ```
 
-Run in production with warnings and errors only: `node worker.ts start --log-level warn` (or
-`LOG_LEVEL=warn`). The SDK's `start` command defaults to `info`. For local development, LiveKit
-now recommends `lk agent dev`; `node worker.ts dev` still works but prints a deprecation warning.
+**Run the LiveKit SDK at `error`:** `node worker.ts start --log-level error` (or `LOG_LEVEL=error`).
+The SDK's `start` command defaults to `info` and `dev` to `debug`, and `@livekit/agents` 1.9.5 can
+write raw user transcripts to local logs at `warn` and below (see Privacy). The example worker
+sets `LOG_LEVEL=error` unless you override it. For local development, LiveKit now recommends
+`lk agent dev`; `node worker.ts dev` still works but prints a deprecation warning.
 
 ### Options
 
@@ -109,10 +111,24 @@ own. `sessions/start` is called exactly once per job; the core reuses its result
 | `speak(text)`                        | `session.say(text, { allowInterruptions: true })` → `waitForPlayout()` / `interrupted`                                                 |
 | `interrupt()`                        | `session.interrupt()`. The returned Future's rejection is always handled.                                                              |
 | `end(reason)`                        | `session.shutdown({ drain: true, reason })` then `JobContext.shutdown()`                                                               |
-| session ended                        | `close` event (participant disconnected → `client_left`) and job shutdown callback                                                     |
+| session ended                        | `close` event (participant disconnected → `client_left`) and job shutdown callback. Both are idempotent: one `sessions/end`.           |
 | capabilities                         | barge-in, text input (if enabled), pending-turn signal, trusted context. No streaming speech (not verified), no tool calling (no LLM). |
 
 The session is created with STT, TTS, and turn detection, **no LLM**, and preemptive generation off.
+
+**Interruptions.** The core cancels superseded backend requests but never stops speech itself.
+LiveKit Agents 1.9.5 interrupts active and queued speech when it commits a spoken user turn (before
+`onUserTurnCompleted` runs), and barge-in stops speech while the user talks. Typed turns bypass
+that path, so the adapter calls `session.interrupt()` first.
+
+**Lifecycle.** The SDK closes the `AgentSession` when the user disconnects deliberately
+(`CLIENT_INITIATED`, `ROOM_DELETED`, `USER_REJECTED`); that releases STT and TTS and closes the
+core session. The job itself ends when LiveKit closes the room after the last non-agent participant
+leaves, so the adapter doesn't call `JobContext.shutdown()` on `client_left`. That isn't immediate:
+LiveKit keeps an empty room open for its `departure_timeout` grace period, and after a network drop
+the server first has to detect that the participant is gone (neither delay measured here). A network
+drop leaves the session open so the same user can rejoin; real reconnection is not yet verified.
+Tripwire tests check these SDK facts.
 
 ## Privacy
 
@@ -121,15 +137,41 @@ The session is created with STT, TTS, and turn detection, **no LLM**, and preemp
   sends `enable_user_data_training` with the session report (see `docs/ARCHITECTURE.md`).
 - VoiceBridge's own logs carry codes, reasons, job ids, and error class names, never transcripts,
   replies, session refs, rooms, credentials, or backend responses.
-- The LiveKit SDK's own logger writes transcripts at DEBUG. Run production at `warn`. A live run at
-  `info` showed no transcripts or replies, but SDK internals can change between versions.
+- **The LiveKit SDK's own local logs can contain user transcripts.** In `@livekit/agents` 1.9.5
+  they appear at DEBUG, and at **WARN** in four statements, including "skipping user input, speech
+  scheduling is paused" (`lk.pii.user_input`). That one runs whenever a session closes with a user
+  turn still pending; it was observed in a real worker log. The SDK redacts `lk.pii.*` fields only
+  in LiveKit Cloud telemetry export, which `record: false` keeps off; local stdout is unredacted.
+  No known 1.9.5 statement at `error` carries a transcript, so run the SDK at `error` and treat
+  logs at lower levels as sensitive. `test/sdk-logging.test.ts` runs the real statement with a
+  synthetic transcript and fails if an SDK upgrade changes this.
+
+### Your logging responsibilities
+
+This package can't set the SDK's log level: your worker's entry point and the LiveKit CLI do. If
+you integrate `@voicebridge/runtime-livekit` in your own worker:
+
+- Start it with `--log-level error` or `LOG_LEVEL=error`. Don't hard-code a lower level in scripts
+  (a CLI flag overrides `LOG_LEVEL`). The example worker shows one way
+  (`examples/worker-livekit/src/worker.ts`).
+- Raising the level for debugging can put user transcripts in your logs. Do it briefly, on synthetic
+  or consented conversations, and delete those logs afterwards.
+- `error` is not a redaction guarantee: error records can include job ids, room names, participant
+  identities, error objects, and provider error payloads. Treat worker logs as sensitive data with
+  access control and retention limits.
+- `record: false` only stops Agent Observability uploads. Runtime stdout and stderr are collected by
+  whatever runs the worker: LiveKit Cloud agent hosting collects them (`lk agent logs`, dashboard,
+  log drains), and so does your own log pipeline on self-hosted infrastructure.
+- Re-check the SDK's logging after every `@livekit/agents` upgrade; the tripwire tests here are
+  pinned to 1.9.5.
 - LiveKit Inference is zero-retention with model providers. Your own plugin accounts follow those
   providers' policies. Review them separately.
 
 ## Testing
 
-- `pnpm test`: 60 tests with fake `JobContext`, `AgentSession`, and SDK bindings, plus a local HTTP
-  stub. No LiveKit Cloud, credentials, or audio needed.
+- `pnpm test`: 72 tests. Orchestration runs with fake `JobContext`, `AgentSession`, and SDK bindings,
+  plus a local HTTP stub. SDK tripwires read or run the installed `@livekit/agents` (logging levels,
+  lifecycle, interruption). No LiveKit Cloud, credentials, or audio needed.
 - **Opt-in live harness** (`live/`, synthetic data, uses your own LiveKit project, never run in CI):
 
   ```console

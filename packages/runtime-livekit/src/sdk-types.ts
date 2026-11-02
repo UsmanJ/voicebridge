@@ -1,6 +1,6 @@
 /**
  * Structural views of the LiveKit Agents surface this adapter uses (`@livekit/agents` 1.9.x).
- * The real SDK objects satisfy them (see `sdk.ts`). Tests supply fakes, so the orchestration
+ * The real SDK objects satisfy them (see `providers.ts`). Tests supply fakes, so the orchestration
  * logic can be verified without network, audio, or credentials.
  */
 

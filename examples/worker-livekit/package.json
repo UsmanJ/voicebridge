@@ -15,8 +15,8 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/worker.ts dev --log-level warn",
-    "start": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/worker.ts start --log-level warn",
+    "dev": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/worker.ts dev",
+    "start": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/worker.ts start",
     "diagnose": "node --env-file-if-exists=../../.env.local --env-file-if-exists=../.env.local src/diagnose.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest --run",

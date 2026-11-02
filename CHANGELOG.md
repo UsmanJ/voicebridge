@@ -19,7 +19,8 @@ First public alpha. **Not production-ready.** Nothing is published to npm. See t
   wire contract with JSON Schema and conformance vectors. Depends on `zod` only.
 - `@voicebridge/livekit-tokens`: server-side LiveKit credential issuer. Mic-only grants, a fresh
   random room and identity per session, allowlisted agent dispatch, room binding verified before
-  signing and recorded with compare-and-set.
+  signing, and recorded through the host's `recordIssuance` hook (the example backend uses
+  compare-and-set).
 - `@voicebridge/runtime-livekit`: LiveKit Agents (Node.js) adapter for backend-controlled mode.
   The session is verified with the backend before the agent joins (fails closed), backend text is
   spoken verbatim, optional typed input, and `record: false` by default.
@@ -30,6 +31,12 @@ First public alpha. **Not production-ready.** Nothing is published to npm. See t
 
 ### Security
 
+- The example worker runs the LiveKit Agents SDK at `LOG_LEVEL=error` by default and no longer
+  hard-codes `--log-level warn`. `@livekit/agents` 1.9.5 writes raw user transcripts to its local
+  logs at WARN (for example when a session closes with a user turn pending; observed in a real
+  run) and lower; its PII redaction covers LiveKit Cloud telemetry only. A startup warning
+  appears when a lower level is chosen. Tripwire tests run the real SDK statement with a synthetic
+  transcript, and check the SDK's lifecycle and interruption behaviour the adapter relies on.
 - The development identity also refuses requests carrying proxy or tunnel forwarding headers,
   refuses to start on common hosting platforms, and refuses non-local browser origins.
 - The host's session API client caps backend response size.
@@ -38,6 +45,10 @@ First public alpha. **Not production-ready.** Nothing is published to npm. See t
 
 ### Fixed
 
+- Documentation now matches the implementation: architecture status, packages and examples,
+  exported signatures, events and error codes, interruption responsibility, which security
+  guarantees belong to the packages versus your backend, privacy and logging statements, and test
+  coverage. Manual real-microphone results are recorded.
 - The browser demo no longer raises an uncaught `DataStreamError` ("Room disconnected in the
   middle of receiving data") when a conversation ends while the assistant is speaking. The M5
   page-level `unhandledrejection` filter never matched this error, because RxJS rethrows it from a

@@ -39,6 +39,7 @@ LiveKit, Inc.
 | Browser demo (Next.js + LiveKit React components)            | **Implemented** (example, demo only)                                       |
 | Session revocation                                           | **Partial**: takes effect at the next turn, not instantly                  |
 | Agent-controlled mode (LLM calling registered backend tools) | **Planned.** Tool registry and executor exist in core, no runtime wiring   |
+| Latency metrics, streaming replies                           | Not yet. Core emits privacy-safe events; the demo doesn't record them      |
 | Second example application (task list)                       | Planned                                                                    |
 | Other runtimes (Pipecat, Vapi, …)                            | Not planned until there's a concrete need (the runtime port stays 0.x)     |
 | Production authentication, durable session storage           | **Your responsibility.** The examples use a dev identity and memory stores |
@@ -142,8 +143,10 @@ The browser only ever sees `{ server_url, participant_token }`.
 
 ## Security responsibilities
 
-VoiceBridge enforces: server-side token minting with mic-only grants and a fresh random room per
-session; room-bound, compare-and-set session binding; session verification before the agent joins;
+The packages enforce: server-side token minting with mic-only grants and a fresh random room per
+session; refusal of client-chosen rooms, identities, agents, and metadata; recording of the issued
+room through your `recordIssuance` hook before the token is returned; session verification with
+your backend (`sessions/start` with the actual room) before the agent joins, failing closed;
 backend URLs from server configuration only (`https`, or `http` only for localhost; no redirects;
 timeouts and response size caps); generic errors to callers; `record: false` by default.
 
@@ -159,7 +162,13 @@ timeouts and response size caps); generic errors to callers; `record: false` by 
 - **CSRF protection** if your token route uses cookies (SameSite plus a CSRF check).
 - **Durable session storage** with atomic conditional writes, **shared rate limiting**, **TLS**
   between all services, and a **secrets manager**.
+- **Session binding in your backend**: store the issued room with an atomic compare-and-set (never
+  overwrite), refuse a second issuance, and on `sessions/start` check that the session is active,
+  unexpired, for this application, and bound to the reported room. The example backend's
+  [`InMemorySessionStore`](examples/backend-help-desk/src/session-store.ts) shows the semantics in
+  memory only.
 - **Authorization in your backend** for every turn and tool call. The worker never bypasses it.
+- **Log handling for the worker.** Run the LiveKit SDK at `error` (see Privacy).
 
 See [SECURITY.md](SECURITY.md) to report a vulnerability, and
 [examples/README.md](examples/README.md#demo-vs-production) for the demo-versus-production table.
@@ -175,8 +184,21 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability, and
   for those providers. That covers model providers only, not Agent Observability, and not
   provider plugins you configure directly. Review your providers before using real conversations.
 - **Nothing is persisted by the demo.** The browser keeps the transcript in memory and discards it
-  when the conversation ends. The example backend keeps only session metadata, in memory. Logs
-  never contain transcript text, tokens, or credentials.
+  when the conversation ends. The example backend keeps only session metadata, in memory.
+- **Logs.** VoiceBridge's own logs and events (packages and examples) never contain transcript
+  text, reply text, session refs, tokens, or credentials. **The LiveKit Agents SDK's local logs can
+  contain user transcripts**: at DEBUG, and in some WARN statements, for example when a session
+  closes while a user turn is pending (`@livekit/agents` 1.9.5; the SDK's PII redaction applies
+  only to LiveKit Cloud telemetry, not local stdout). The example worker therefore runs the SDK at
+  `LOG_LEVEL=error` by default, where no known 1.9.5 statement logs transcripts, and warns at
+  startup if you choose a lower level. **Raising the level (`warn`, `info`, `debug`) can expose
+  what users said.** `error` isn't a guarantee of complete PII redaction either: error records can
+  include identifiers and provider error details, so treat worker logs as sensitive at any level.
+  If you run your own worker, set `LOG_LEVEL=error` (or `--log-level error`) yourself.
+- **`record: false` doesn't cover runtime logs.** It stops Agent Observability uploads only. If
+  you deploy the worker to LiveKit Cloud, LiveKit collects its stdout and stderr (`lk agent logs`,
+  dashboard, log drains); on your own host, your log pipeline does. Either way, the log level is
+  what keeps transcripts out of them.
 
 ## Running the checks
 
@@ -207,6 +229,7 @@ Live tests against LiveKit Cloud are opt-in scripts that are never run in CI
 | Browser: microphone blocked or not found                                         | Allow the microphone in the site settings, or connect one. The page needs a secure context (`localhost` or HTTPS).                        |
 | No sound, but transcript appears                                                 | The browser blocked autoplay: click **Allow audio playback**.                                                                             |
 | Worker logs `session rejected before connecting`                                 | The backend refused the session (expired, revoked, wrong room, or wrong worker credential). Start a new conversation.                     |
+| Worker prints only its startup line                                              | Expected: the LiveKit SDK logs at `error` by default. For troubleshooting, set `LOG_LEVEL=warn` (those logs may contain transcripts).     |
 
 ## Contributing
 
@@ -220,10 +243,15 @@ coding agents.
 
 - Alpha: the wire contract `/v0` and runtime port `0.x` are experimental and will change.
 - Only backend-controlled mode works. Agent-controlled mode isn't wired to a runtime yet.
-- Revocation takes effect at the session's next turn, not instantly.
+- Revocation takes effect at the session's next turn, not instantly. The worker has no idle or
+  maximum-duration limit; a session ends when the user leaves and LiveKit closes the room.
 - The examples use in-memory stores and per-process rate limits; restarting loses all sessions.
-- The browser demo has been verified with synthetic microphone audio and mocked tests. A real
-  microphone run is a manual check ([examples/README.md](examples/README.md#manual-browser-checklist)).
+- The browser demo is verified with mocked tests, a synthetic-microphone run on LiveKit Cloud, and
+  a manual real-microphone run (2026-11-01). **Network interruption
+  and reconnection haven't been tested with a real drop yet**
+  ([checklist](docs/releases/v0.1.0-alpha.1-manual-checklist.md)).
+- End-to-end latency hasn't been measured. Replies aren't streamed: the backend's whole reply is
+  synthesized after it arrives.
 - `@livekit/components-react` 2.9.24 carries a small local patch for an upstream bug
   ([patches/README.md](patches/README.md)).
 - More detail: [CHANGELOG.md](CHANGELOG.md) and

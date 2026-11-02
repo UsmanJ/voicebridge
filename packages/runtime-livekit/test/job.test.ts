@@ -288,6 +288,30 @@ describe('turn handling', () => {
     expect(h.sdk.session.spoken).toHaveLength(1);
   });
 
+  it('user leaves, then LiveKit closes the room: one sessions/end (client_left), no speech, no extra shutdown', async () => {
+    // Real sequence in LiveKit Agents 1.9.5: the SDK closes the AgentSession on a client-initiated
+    // disconnect (close event), and the job only ends later, when LiveKit closes the room after the
+    // last non-agent participant left (job shutdown callbacks run). The adapter relies on that
+    // documented room lifecycle and doesn't call JobContext.shutdown() itself on client_left.
+    const late = deferred<BackendReply>();
+    const h = harness((_t, _c, signal) => {
+      signal.addEventListener('abort', () => late.reject(signal.reason));
+      return late.promise;
+    });
+    await h.handler(h.job);
+    await untilSpoken(h, 1);
+    h.sdk.userSays('question');
+    await tick(5);
+    h.sdk.session.emit(EVENTS.close, { reason: 'participant_disconnected' });
+    await tick(10);
+    expect(h.job.shutdownReasons).toEqual([]);
+    await h.job.runShutdownCallbacks();
+    await tick(10);
+    expect(h.conv.abortedTurnIds).toEqual(['t1']);
+    expect(h.conv.endCalls.map((c) => c.reason)).toEqual(['client_left']);
+    expect(h.sdk.session.spoken).toHaveLength(1);
+  });
+
   it('15. never speaks after termination (job shutdown callback)', async () => {
     const late = deferred<BackendReply>();
     const h = harness(() => late.promise);

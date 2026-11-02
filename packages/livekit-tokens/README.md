@@ -22,7 +22,8 @@ Mints LiveKit participant credentials for VoiceBridge voice sessions:
   dependencies: `livekit-server-sdk` (→ `@livekit/protocol`, `@bufbuild/protobuf`, `jose`) and
   `@voicebridge/core` (→ `zod`).
 - **Verify sessions inside the worker.** The worker must re-verify the binding server-side (see
-  [Integration with the worker](#integration-with-the-voicebridge-worker)). That's not implemented yet.
+  [Integration with the worker](#integration-with-the-voicebridge-worker)). That's done by
+  `@voicebridge/runtime-livekit` (`verifyLiveKitSession`), not by this package.
 
 ## Usage (server-side)
 
@@ -97,7 +98,7 @@ or inspect.
                                                                        ▼     least-privilege grant, dispatch
  Browser ◀──── { server_url, participant_token } ─────────────────────────
    (can decode the JWT payload: it contains no secrets or PII)
- LiveKit ──job (metadata {vb:0, applicationId, sessionRef})──▶ Worker ──verify sessionRef server-side (M3)
+ LiveKit ──job (metadata {vb:0, applicationId, sessionRef})──▶ Worker ──verify sessionRef server-side (runtime-livekit)
 ```
 
 - **Untrusted:** everything from the browser, including any application id, room, agent, identity, or metadata.

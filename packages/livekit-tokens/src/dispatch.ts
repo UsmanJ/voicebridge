@@ -10,7 +10,7 @@ import { LiveKitTokenError } from './errors.ts';
  * the token signature, not confidentiality.
  *
  * The worker must still verify the application/session binding through a trusted server-side
- * mechanism before acting on it (see README: not implemented in this package).
+ * mechanism before acting on it (`@voicebridge/runtime-livekit` does this with `sessions/start`).
  */
 export interface DispatchMetadataV0 {
   readonly vb: 0;

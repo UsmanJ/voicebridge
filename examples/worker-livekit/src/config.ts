@@ -8,10 +8,30 @@ import type { VoiceBridgeAgentOptions } from '@voicebridge/runtime-livekit';
 
 type Env = Readonly<Record<string, string | undefined>>;
 
+/** Log levels accepted by the LiveKit Agents CLI (`--log-level` / `LOG_LEVEL`). */
+export const SDK_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'] as const;
+export type SdkLogLevel = (typeof SDK_LOG_LEVELS)[number];
+
+/**
+ * Default LiveKit SDK log level for this worker. `@livekit/agents` 1.9.5 writes raw user
+ * transcripts to its local logs at WARN (for example "skipping user input, speech scheduling is
+ * paused", carrying `lk.pii.user_input`, when a session closes with an uncommitted user turn),
+ * and more at INFO and DEBUG. Its PII redaction applies only to LiveKit Cloud telemetry export,
+ * not to local stdout. At `error` no known SDK path in 1.9.5 logs transcripts.
+ */
+export const DEFAULT_SDK_LOG_LEVEL: SdkLogLevel = 'error';
+
+/** True when the LiveKit SDK may write user transcripts to local logs at this level. */
+export function sdkLogsMayContainTranscripts(level: SdkLogLevel): boolean {
+  return level !== 'error' && level !== 'fatal';
+}
+
 export interface WorkerConfig {
   agentName: string;
   healthHost: string;
   healthPort: number;
+  /** Applied as `LOG_LEVEL` before the LiveKit CLI parses its options (also used by job processes). */
+  sdkLogLevel: SdkLogLevel;
   options: VoiceBridgeAgentOptions;
   /** Safe to print: no credentials, URLs, or secrets. */
   summary: Record<string, string | number | boolean>;
@@ -40,6 +60,10 @@ export function loadWorkerConfig(env: Env): WorkerConfig {
     applicationId,
     conversation: backend.conversation(),
   });
+  const sdkLogLevel = (env.LOG_LEVEL ?? DEFAULT_SDK_LOG_LEVEL) as SdkLogLevel;
+  if (!SDK_LOG_LEVELS.includes(sdkLogLevel)) {
+    throw new Error(`LOG_LEVEL must be one of ${SDK_LOG_LEVELS.join(', ')}`);
+  }
   const textInput = env.VB_TEXT_INPUT === 'true';
   const sttModel = env.VB_STT_MODEL ?? 'assemblyai/universal-3-6-pro';
   const ttsModel = env.VB_TTS_MODEL ?? 'fishaudio/s2.1-pro';
@@ -60,8 +84,11 @@ export function loadWorkerConfig(env: Env): WorkerConfig {
     agentName: env.VB_AGENT_NAME ?? 'voicebridge-help-desk',
     healthHost: env.VB_HEALTH_HOST ?? '127.0.0.1',
     healthPort: Number(env.VB_HEALTH_PORT ?? 8081),
+    sdkLogLevel,
     options,
     summary: {
+      sdkLogLevel,
+      sdkLogsMayContainTranscripts: sdkLogsMayContainTranscripts(sdkLogLevel),
       applicationId,
       agentName: env.VB_AGENT_NAME ?? 'voicebridge-help-desk',
       mode: 'backend-controlled',

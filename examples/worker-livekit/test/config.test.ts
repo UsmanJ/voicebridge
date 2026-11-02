@@ -1,5 +1,6 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { loadWorkerConfig } from '../src/config.ts';
+import { DEFAULT_SDK_LOG_LEVEL, loadWorkerConfig } from '../src/config.ts';
 
 const ENV = {
   LIVEKIT_URL: 'wss://voice.synthetic.invalid',
@@ -53,6 +54,46 @@ describe('worker configuration', () => {
       loadWorkerConfig({ ...ENV, HELP_DESK_URL: 'http://backend.example.com' }),
     ).toThrow();
     expect(() => loadWorkerConfig({ ...ENV, HELP_DESK_WORKER_CREDENTIAL: 'short' })).toThrow();
+  });
+
+  describe('LiveKit SDK log level (transcripts reach local SDK logs at warn and below)', () => {
+    it('defaults to error, where no known @livekit/agents 1.9.5 path logs transcripts', () => {
+      expect(DEFAULT_SDK_LOG_LEVEL).toBe('error');
+      const c = loadWorkerConfig(ENV);
+      expect(c.sdkLogLevel).toBe('error');
+      expect(c.summary).toMatchObject({
+        sdkLogLevel: 'error',
+        sdkLogsMayContainTranscripts: false,
+      });
+    });
+
+    it('honours an explicit LOG_LEVEL and flags verbose levels as transcript-bearing', () => {
+      for (const level of ['warn', 'info', 'debug', 'trace']) {
+        const c = loadWorkerConfig({ ...ENV, LOG_LEVEL: level });
+        expect(c.sdkLogLevel).toBe(level);
+        expect(c.summary.sdkLogsMayContainTranscripts).toBe(true);
+      }
+      expect(loadWorkerConfig({ ...ENV, LOG_LEVEL: 'fatal' }).summary).toMatchObject({
+        sdkLogsMayContainTranscripts: false,
+      });
+    });
+
+    it('refuses an unknown LOG_LEVEL', () => {
+      expect(() => loadWorkerConfig({ ...ENV, LOG_LEVEL: 'verbose' })).toThrow('LOG_LEVEL');
+    });
+
+    it('the npm scripts pass no --log-level flag, so the default (or LOG_LEVEL) applies', () => {
+      // An explicit CLI flag would override LOG_LEVEL and silently restore a verbose level.
+      const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+        scripts: Record<string, string>;
+      };
+      for (const name of ['dev', 'start']) {
+        expect(pkg.scripts[name], name).toContain('src/worker.ts');
+        expect(pkg.scripts[name], name).not.toContain('--log-level');
+      }
+      const worker = readFileSync(new URL('../src/worker.ts', import.meta.url), 'utf8');
+      expect(worker).toMatch(/process\.env\.LOG_LEVEL = config\.sdkLogLevel;[\s\S]*cli\.runApp\(/);
+    });
   });
 
   it('startup diagnostics contain no credentials, secrets, or URLs', () => {
