@@ -21,16 +21,16 @@
     "pnpm": ">=10.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
-    "@types/node": "^24.13.5",
-    "eslint": "^9.39.5",
+    "@eslint/js": "^10.0.1",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "^16.5.0",
+    "globals": "^17.14.0",
     "jiti": "^2.7.0",
     "prettier": "^3.9.10",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.70.0",
-    "vitest": "^4.1.11"
+    "vitest": "^5.1.0"
   }
 }
