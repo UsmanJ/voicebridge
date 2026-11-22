@@ -25,8 +25,8 @@
   "dependencies": {
     "@voicebridge/core": "workspace:*",
     "@voicebridge/runtime-livekit": "workspace:*",
-    "@livekit/agents": "1.9.5",
-    "@livekit/rtc-node": "0.13.35"
+    "@livekit/agents": "1.10.1",
+    "@livekit/rtc-node": "1.2.2"
   },
   "devDependencies": {
     "@voicebridge/livekit-tokens": "workspace:*",

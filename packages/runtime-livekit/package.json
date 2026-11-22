@@ -33,10 +33,10 @@
     "@livekit/agents": "~1.9.5"
   },
   "devDependencies": {
-    "@livekit/agents": "1.9.5",
-    "@livekit/rtc-node": "0.13.35",
+    "@livekit/agents": "1.10.1",
+    "@livekit/rtc-node": "1.2.2",
     "@types/node": "^24.13.5",
-    "livekit-server-sdk": "^2.19.2",
+    "livekit-server-sdk": "^2.20.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
   }
