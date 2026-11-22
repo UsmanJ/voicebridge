@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@voicebridge/core": "workspace:*",
-    "livekit-server-sdk": "^2.19.2"
+    "livekit-server-sdk": "^2.20.0"
   },
   "devDependencies": {
     "@types/node": "^24.13.5",
